@@ -26,20 +26,32 @@ private:
         auto tags_first = tags.cbegin(); 
         auto tags_last = tags.cend(); 
         auto filter_first = filter.cbegin(); 
-        auto filter_last = filter.cbegin();
+        auto filter_last = filter.cend();
         while(tags_first != tags_last && filter_first != filter_last) {
             int r_cmp = tags_first->first.compare(filter_first->first);
             if(r_cmp < 0) { ++tags_first; continue; }
-            if(r_cmp > 0) return false;
-            if(filter_first->second.compare(tags_first->second) != 0) return false;
+            if(r_cmp > 0)  {
+                // std::cout << "\t NO-MATCH-1: " << filter_first->first << " " << tags_first->first << std::endl;
+                return false;
+            }
+            if(filter_first->second.compare(tags_first->second) != 0) {
+                // std::cout << "\t NO-MATCH-2: " << filter_first->second << " " << tags_first->second << std::endl;
+                return false;
+            }
+            // std::cout << "\t OK: " << filter_first->first << " " << filter_first->second << " " << tags_first->first << " " << tags_first->second << std::endl;
             ++tags_first; ++filter_first;
         }
+        // if(filter_first == filter_last) {
+        //     std::cout << "\t MATCHED" << std::endl;
+        // } else {
+        //     std::cout << "\t NO-MATCH-END: " << std::endl;
+        // }
         return filter_first == filter_last;
     }
 
-    std::vector<std::pair<std::vector<std::pair<std::string, std::string>>, NodeRegionBuilder>> node_filters;
-    std::vector<std::pair<std::vector<std::pair<std::string, std::string>>, WayRegionBuilder>> way_filters;
-    std::vector<std::pair<std::vector<std::pair<std::string, std::string>>, AreaRegionBuilder>> area_filters;
+    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>, NodeRegionBuilder>> node_filters;
+    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>, WayRegionBuilder>> way_filters;
+    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>, AreaRegionBuilder>> area_filters;
 
     std::vector<Region> regions;
 
@@ -98,7 +110,7 @@ public:
             std::vector<std::pair<std::string, std::string>> tags;
             tags.reserve(node.tags().size());
             boost::transform(node.tags(), std::back_inserter(tags), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
-            boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.compare(p2.first); });
+            boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.first < p2.first; });
 
             for(auto & [filter, builder] : node_filters) {
                 if(!fusion_test(tags, filter)) continue;
@@ -121,14 +133,13 @@ public:
                 return;
 
             std::vector<std::pair<std::string, std::string>> tags;
-            tags.reserve(way.tags().size());
             boost::transform(way.tags(), std::back_inserter(tags), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
-            boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.compare(p2.first); });
+            boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.first < p2.first; });
 
-            for(auto & [filter, infos] : way_filters) {
+            for(auto & [filter, builder] : way_filters) {
                 if(!fusion_test(tags, filter)) continue;
 
-                regions.emplace_back(m_factory.create_linestring(way), infos);
+                regions.emplace_back(builder.build(tags, m_factory.create_linestring(way)));
                 if(search_area.empty() || boost::geometry::covered_by(regions.back().multipolygon, search_area))
                     return;
                 regions.pop_back();
@@ -148,12 +159,12 @@ public:
             std::vector<std::pair<std::string, std::string>> tags;
             tags.reserve(area.tags().size());
             boost::transform(area.tags(), std::back_inserter(tags), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
-            boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.compare(p2.first); });
+            boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.first < p2.first; });
 
-            for(auto & [filter, infos] : area_filters) {
+            for(auto & [filter, builder] : area_filters) {
                 if(!fusion_test(tags, filter)) continue;
 
-                regions.emplace_back(m_factory.create_multipolygon(area), infos);
+                regions.emplace_back(builder.build(tags, m_factory.create_multipolygon(area)));
                 if(search_area.empty() || boost::geometry::intersects(regions.back().multipolygon, search_area))
                     return;
                 regions.pop_back();

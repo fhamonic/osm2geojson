@@ -15,8 +15,8 @@
 #include <boost/range/algorithm.hpp>
 #include <boost/range/adaptors.hpp>
 
-void plot_svg(const std::vector<std::pair<MultipolygonGeo,RegionInfo>> & regions, const std::filesystem::path & svg_file);
-void print_geojson(const std::vector<std::pair<MultipolygonGeo,RegionInfo>> & regions, const std::filesystem::path & json_file);
-std::vector<std::pair<MultipolygonGeo,RegionInfo>> parse_geojson(const std::filesystem::path & json_file);
+void plot_svg(const std::vector<Region> & regions, const std::filesystem::path & svg_file);
+void print_geojson(const std::vector<Region> & regions, const std::filesystem::path & json_file);
+std::vector<Region> parse_geojson(const std::filesystem::path & json_file);
 
 #endif // IO_HPP

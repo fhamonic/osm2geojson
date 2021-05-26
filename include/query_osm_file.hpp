@@ -15,6 +15,9 @@
 #include "parse_patterns.hpp"
 #include "bg_regions_dump_handler.hpp"
 
+#include <boost/range/algorithm.hpp>
+#include <boost/range/adaptors.hpp>
+
 std::vector<Region> query_osm_file(
         const std::filesystem::path & input_file,
         const std::filesystem::path & patterns_file, 

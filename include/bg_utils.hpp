@@ -5,6 +5,7 @@
 
 #include <boost/geometry/srs/epsg.hpp>
 #include <boost/geometry/srs/projection.hpp>
+#include <boost/geometry/srs/projections/proj4.hpp>
 
 #include <boost/range/algorithm.hpp>
 #include <boost/range/adaptors.hpp>
@@ -23,7 +24,7 @@ Multipolygon2D buffer2D(T&& g, float width) {
 
 template <class Point>
 MultipolygonGeo buffer_PointGeo(Point&& p, float width) {
-    boost::geometry::srs::projection<> proj = boost::geometry::srs::proj4("+proj=eqc +ellps=GRS80 +lon_0="+ std::to_string(p.get<0>()) +" +lat_0="+ std::to_string(p.get<1>()));
+    boost::geometry::srs::projection<> proj = boost::geometry::srs::proj4("+proj=eqc +ellps=GRS80 +lon_0="+ std::to_string(p.x()) +" +lat_0="+ std::to_string(p.y()));
      
     MultipolygonGeo mp;
 
@@ -38,7 +39,7 @@ MultipolygonGeo buffer_PointGeo(Point&& p, float width) {
 template <class Linestring>
 MultipolygonGeo buffer_LinestringGeo(Linestring&& l, float width) {
     PointGeo center = boost::geometry::return_centroid<PointGeo>(boost::geometry::return_envelope<BoxGeo>(l));
-    boost::geometry::srs::projection<> proj = boost::geometry::srs::proj4("+proj=eqc +ellps=GRS80 +lon_0="+ std::to_string(center.get<0>()) +" +lat_0="+ std::to_string(center.get<1>()));
+    boost::geometry::srs::projection<> proj = boost::geometry::srs::proj4("+proj=eqc +ellps=GRS80 +lon_0="+ std::to_string(center.x()) +" +lat_0="+ std::to_string(center.y()));
      
     MultipolygonGeo mp;
 

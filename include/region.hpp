@@ -14,7 +14,7 @@ public:
 
     template <typename Multipolygon, typename Properties>
     Region(Multipolygon&& multipolygon, Properties&& properties)
-        : multipolygon(multipolygon)
+        : multipolygon(std::forward<Multipolygon>(multipolygon))
         , properties(std::forward<Properties>(properties)) {}
 
     bool hasProperty(const std::string & tag) const noexcept {
