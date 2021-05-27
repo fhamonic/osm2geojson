@@ -10,9 +10,23 @@
 #include <boost/program_options.hpp>
 namespace bpo = boost::program_options;
 
+#include <boost/log/core.hpp>
+#include <boost/log/trivial.hpp>
+#include <boost/log/expressions.hpp>
+namespace logging = boost::log;
+
+void init_logging(bool no_warnings){
+    logging::core::get()->set_filter(
+        no_warnings
+        ? (logging::trivial::severity >= logging::trivial::error)
+        : (logging::trivial::severity >= logging::trivial::warning)
+    );
+}
+
 static bool process_command_line(int argc, char* argv[], 
-    std::filesystem::path & input_file, std::filesystem::path & patterns_file,
-    std::filesystem::path & output_file, std::filesystem::path & area_file, bool & generate_svg) {
+        std::filesystem::path & input_file, std::filesystem::path & patterns_file,
+        std::filesystem::path & output_file, std::filesystem::path & area_file,
+        bool & generate_svg, bool & no_warnings) {
     try {
         bpo::options_description desc("Allowed options");
         desc.add_options()
@@ -22,6 +36,7 @@ static bool process_command_line(int argc, char* argv[],
             ("output,o", bpo::value<std::filesystem::path>(&output_file)->required(), "set output geojson file")
             ("search-area,a", bpo::value<std::filesystem::path>(&area_file), "set search area pattern file")
             ("generate-svg", "generate the svg file of the result regions")
+            ("no-warnings", "silence warning prints")
         ;
         bpo::positional_options_description p;
         p.add("input", 1).add("patterns", 1).add("output", 1);
@@ -33,6 +48,7 @@ static bool process_command_line(int argc, char* argv[],
         }
         bpo::notify(vm); 
         generate_svg = (vm.count("generate-svg") > 0);
+        no_warnings = (vm.count("no-warnings") > 0);
     } catch(std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return false;
@@ -46,10 +62,12 @@ int main(int argc, char* argv[]) {
     std::filesystem::path output_file;
     std::filesystem::path area_pattern_file;
     bool generate_svg;
+    bool no_warnings;
 
-    bool valid_command = process_command_line(argc, argv, input_file, patterns_file, output_file, area_pattern_file, generate_svg);
+    bool valid_command = process_command_line(argc, argv, input_file, patterns_file, output_file, area_pattern_file, generate_svg, no_warnings);
     if(!valid_command)
         return EXIT_FAILURE;
+    init_logging(no_warnings);
 
     std::vector<Region> regions = query_osm_file(input_file, patterns_file, area_pattern_file);
 

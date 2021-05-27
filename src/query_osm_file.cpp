@@ -1,4 +1,5 @@
 #include "query_osm_file.hpp"
+#include <osmium/util/progress_bar.hpp>
 
 using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
@@ -18,9 +19,15 @@ void do_query(const osmium::io::File & osm_file, const osmium::TagsFilter & area
     location_handler_type location_handler{index};
     location_handler.ignore_errors();
 
-    osmium::apply(reader, location_handler, bg_handler, mp_manager.handler([&bg_handler](osmium::memory::Buffer&& buffer) {
+    osmium::ProgressBar progress{reader.file_size(), osmium::isatty(2)};
+    osmium::apply(reader, location_handler, bg_handler, mp_manager.handler([&bg_handler, &progress, &reader](osmium::memory::Buffer&& buffer) {
         osmium::apply(buffer, bg_handler);
+        progress.update(reader.offset());
     }));
+    progress.remove();
+    progress.update(reader.offset());
+    progress.done();
+
     reader.close();
 }
 

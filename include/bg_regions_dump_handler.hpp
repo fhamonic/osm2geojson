@@ -13,7 +13,7 @@
 #include "region.hpp"
 #include "region_builders.hpp"
 
-#include <boost/range/algorithm.hpp>
+#include <boost/log/trivial.hpp>
 
 class BGRegionsDumpHandler : public osmium::handler::Handler {
 private:
@@ -22,7 +22,7 @@ private:
     MultipolygonGeo search_area;
     BoxGeo search_area_box;
 
-    bool fusion_test(const std::vector<std::pair<std::string, std::string>> tags, const std::vector<std::pair<std::string, std::string>> filter) {
+    bool fusion_test(const std::vector<std::pair<std::string, std::string>> & tags, const std::vector<std::pair<std::string, std::string>> & filter) {
         auto tags_first = tags.cbegin(); 
         auto tags_last = tags.cend(); 
         auto filter_first = filter.cbegin(); 
@@ -30,22 +30,12 @@ private:
         while(tags_first != tags_last && filter_first != filter_last) {
             int r_cmp = tags_first->first.compare(filter_first->first);
             if(r_cmp < 0) { ++tags_first; continue; }
-            if(r_cmp > 0)  {
-                // std::cout << "\t NO-MATCH-1: " << filter_first->first << " " << tags_first->first << std::endl;
+            if(r_cmp > 0) 
                 return false;
-            }
-            if(filter_first->second.compare(tags_first->second) != 0) {
-                // std::cout << "\t NO-MATCH-2: " << filter_first->second << " " << tags_first->second << std::endl;
+            if(filter_first->second.compare(tags_first->second) != 0)
                 return false;
-            }
-            // std::cout << "\t OK: " << filter_first->first << " " << filter_first->second << " " << tags_first->first << " " << tags_first->second << std::endl;
             ++tags_first; ++filter_first;
         }
-        // if(filter_first == filter_last) {
-        //     std::cout << "\t MATCHED" << std::endl;
-        // } else {
-        //     std::cout << "\t NO-MATCH-END: " << std::endl;
-        // }
         return filter_first == filter_last;
     }
 
@@ -115,16 +105,16 @@ public:
             for(auto & [filter, builder] : node_filters) {
                 if(!fusion_test(tags, filter)) continue;
 
-                regions.emplace_back(builder.build(tags, m_factory.create_point(node)));
+                regions.emplace_back(builder.build(std::move(tags), m_factory.create_point(node)));
                 if(search_area.empty() || boost::geometry::covered_by(regions.back().multipolygon, search_area))
                     return;
                 regions.pop_back();
                 return;
             }
         } catch (const osmium::geometry_error& e) {
-            std::cout << "GEOMETRY ERROR: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         } catch (const osmium::invalid_location& e) {
-            std::cout << "GEOMETRY ERROR: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         }
     }
     void way(const osmium::Way& way) noexcept {
@@ -146,9 +136,9 @@ public:
                 return;
             }
         } catch (const osmium::geometry_error& e) {
-            std::cout << "GEOMETRY ERROR: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         } catch (const osmium::invalid_location& e) {
-            std::cout << "GEOMETRY ERROR: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         }
     }    
     void area(const osmium::Area& area) noexcept {
@@ -171,9 +161,9 @@ public:
                 return;
             }
         } catch (const osmium::geometry_error& e) {
-            std::cout << "GEOMETRY ERROR: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         } catch (const osmium::invalid_location& e) {
-            std::cout << "GEOMETRY ERROR: " << e.what() << std::endl;
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         }
     }
 }; // class BGRegionsDumpHandler
