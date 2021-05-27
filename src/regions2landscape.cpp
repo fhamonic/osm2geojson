@@ -3,25 +3,11 @@
 #include <fstream>  // ofstream
 #include <iostream> // std::cout, std::cerr
 
-#include <boost/geometry.hpp>
+#include "bg_types.hpp"
+namespace bg = boost::geometry;
+
 #include <boost/geometry/srs/epsg.hpp>
 #include <boost/geometry/srs/projection.hpp>
-
-using PointGeo = boost::geometry::model::d2::point_xy<double, boost::geometry::cs::geographic<boost::geometry::degree>>;
-using BoxGeo = boost::geometry::model::box<PointGeo>;
-using LinestringGeo = boost::geometry::model::linestring<PointGeo>;
-using RingGeo = boost::geometry::model::ring<PointGeo>;
-using PolygonGeo = boost::geometry::model::polygon<PointGeo>;
-using MultipolygonGeo = boost::geometry::model::multi_polygon<PolygonGeo>;
-
-using Point2D = boost::geometry::model::d2::point_xy<double>;
-using Box2D = boost::geometry::model::box<Point2D>;
-using Linestring2D = boost::geometry::model::linestring<Point2D>;
-using Ring2D = boost::geometry::model::ring<Point2D>;
-using Polygon2D = boost::geometry::model::polygon<Point2D>;
-using Multipolygon2D = boost::geometry::model::multi_polygon<Polygon2D>;
-
-namespace bg = boost::geometry;
 namespace srs = bg::srs;
 
 #include <boost/geometry/index/rtree.hpp>
@@ -35,6 +21,7 @@ namespace ba = boost::adaptors;
 namespace bpo = boost::program_options;
 
 
+#include "region.hpp"
 #include "bg_h3_interface.hpp"
 #include "chrono.hpp"
 
@@ -78,7 +65,7 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
 
 
-    std::vector<std::pair<MultipolygonGeo,RegionInfo>> regions;
+    std::vector<Region> regions;
     
 
     using RTree = bgi::rtree<std::pair<BoxGeo,size_t>, bgi::rstar<16,4>>;
