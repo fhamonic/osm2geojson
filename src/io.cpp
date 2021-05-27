@@ -63,8 +63,35 @@ void print_geojson(const std::vector<Region> & regions, const std::filesystem::p
         << "}";
 }
 
+#include <simdjson.h>
+
 std::vector<Region> parse_geojson(const std::filesystem::path & json_file) {
     std::vector<Region> regions;
-    // TODO
+    simdjson::ondemand::parser parser;
+    auto json = simdjson::padded_string::load(json_file);
+    simdjson::ondemand::document doc = parser.iterate(json);
+
+    if(doc.find_field("type") != "FeatureCollection")
+        throw std::runtime_error("json_file is not FeatureCollection");
+
+    for(auto region : doc.find_field("features")) {
+        
+        if(region.find_field("type") != "MultiPolygon")
+            throw std::runtime_error("region with type != MultiPolygon");
+
+        for(auto polygon : region["geometry"]) {
+            auto begin_ring = polygon.begin();
+            auto end_ring = polygon.end();
+            if(begin_ring == end_ring)
+                throw std::runtime_error("region with type != MultiPolygon");
+        }
+
+        for (auto [key, value] : region["properties"]) {
+            cout << key << " = " << value << endl;
+        }
+
+    }
+
+
     return regions;
 }

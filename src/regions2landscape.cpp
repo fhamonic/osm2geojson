@@ -22,6 +22,7 @@ namespace bpo = boost::program_options;
 
 
 #include "region.hpp"
+#include "io.hpp"
 #include "bg_h3_interface.hpp"
 #include "chrono.hpp"
 
@@ -65,12 +66,12 @@ int main(int argc, char* argv[]) {
         return EXIT_FAILURE;
 
 
-    std::vector<Region> regions;
+    std::vector<Region> regions = parse_geojson(input_file);
     
 
     using RTree = bgi::rtree<std::pair<BoxGeo,size_t>, bgi::rstar<16,4>>;
     RTree rtree(regions | ba::indexed(0) | ba::transformed([](const auto& e) {
-        return std::make_pair(bg::return_envelope<BoxGeo>(e.value().first), e.index());
+        return std::make_pair(bg::return_envelope<BoxGeo>(e.value().multipolygon), e.index());
     }));
 
 
