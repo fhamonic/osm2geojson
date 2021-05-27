@@ -34,10 +34,10 @@ void plot_svg(const std::vector<Region> & raw_regions, const std::filesystem::pa
         const double qualityCoef = e.second.first;
         const double probConnectionPerMeter = e.second.second;
 
-        int value = 127 * ((max_quality-min_quality)!=0 ? (qualityCoef-min_quality)/(max_quality-min_quality) : 1) + 
-            128 - 127 * ((max_resistance-min_resistance)!=0 ? (probConnectionPerMeter-min_resistance)/(max_resistance-min_resistance) : 1);
+        int green = 255 * ((max_quality-min_quality)!=0 ? (qualityCoef-min_quality)/(max_quality-min_quality) : 1);
+        int red =  255 - 255 * ((max_resistance-min_resistance)!=0 ? (probConnectionPerMeter-min_resistance)/(max_resistance-min_resistance) : 1);
 
-        mapper.map(mp, "fill-opacity:0.5;fill:rgb(" + std::to_string(255 - value) + "," + std::to_string(value) + ",0);stroke:rgb(0,0,0);stroke-width:0");
+        mapper.map(mp, "fill-opacity:0.5;fill:rgb(" + std::to_string(red) + "," + std::to_string(green) + ",0);stroke:rgb(0,0,0);stroke-width:0");
     }
 }
 

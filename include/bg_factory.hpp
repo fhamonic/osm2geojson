@@ -128,7 +128,7 @@ namespace osmium {
                 if(! boost::geometry::is_valid(l)) {
                     std::string m;
                     boost::geometry::is_valid(l, m);
-                    throw osmium::geometry_error{"Boost Geometry: "+m};
+                    throw osmium::geometry_error{m};
                 }
 
                 return l;
@@ -163,7 +163,7 @@ namespace osmium {
                 if (! boost::geometry::is_valid(p)) {
                     std::string m;
                     boost::geometry::is_valid(p, m);
-                    throw osmium::geometry_error{"Boost Geometry: "+m};
+                    throw osmium::geometry_error{m};
                 }
                 
                 return p;
@@ -206,7 +206,7 @@ namespace osmium {
                     if(!boost::geometry::is_valid(mp)) {
                         std::string m;
                         boost::geometry::is_valid(mp, m);
-                        throw osmium::geometry_error{"Boost Geometry: "+m};
+                        throw osmium::geometry_error{m};
                     }
 
                     return mp;

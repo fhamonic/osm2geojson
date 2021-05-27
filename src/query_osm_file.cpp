@@ -50,14 +50,6 @@ std::vector<Region> query_osm_file(const std::filesystem::path & input_file,
         );
         do_query(osm_file, search_area_englobing_filter, bg_search_area_handler);
 
-
-
-
-        for(const auto & tag : search_area_rules.front().first)
-            std::cout << tag.first << " " << tag.second << std::endl;
-
-
-        
         if(bg_search_area_handler.getRegions().size() == 0)
             throw std::runtime_error("Search Area not found");
         if(bg_search_area_handler.getRegions().size() > 1)
