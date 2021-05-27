@@ -7,7 +7,6 @@ using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 namespace bg = boost::geometry;
 namespace ba = boost::adaptors;
 
-
 void do_query(const osmium::io::File & osm_file, const osmium::TagsFilter & area_englobing_filter, BGRegionsDumpHandler & bg_handler) {
     osmium::area::Assembler::config_type assembler_config;
     osmium::area::MultipolygonManager<osmium::area::Assembler> mp_manager{assembler_config, area_englobing_filter};
@@ -47,8 +46,8 @@ std::vector<Region> query_osm_file(const std::filesystem::path & input_file,
         nlohmann::json search_area_pattern;
         search_area_pattern_stream >> search_area_pattern;
         
-        std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,AreaRegionBuilder>> search_area_rules(1, parse_area_pattern(search_area_pattern));
-        const osmium::TagsFilter search_area_englobing_filter = rules_to_tagsfilter(search_area_rules);
+        std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,AreaRegionBuilder>> search_area_rules(1, IO::parse_area_pattern(search_area_pattern));
+        const osmium::TagsFilter search_area_englobing_filter = IO::rules_to_tagsfilter(search_area_rules);
 
         BGRegionsDumpHandler bg_search_area_handler(
             std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,NodeRegionBuilder>>(),
@@ -67,13 +66,13 @@ std::vector<Region> query_osm_file(const std::filesystem::path & input_file,
         bg::convert(hull, search_area);
     }
 
-    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,AreaRegionBuilder>> area_rules = parse_area_patterns(patterns["areaPatterns"]);
-    const osmium::TagsFilter area_englobing_filter = rules_to_tagsfilter(area_rules);
+    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,AreaRegionBuilder>> area_rules = IO::parse_area_patterns(patterns["areaPatterns"]);
+    const osmium::TagsFilter area_englobing_filter = IO::rules_to_tagsfilter(area_rules);
 
     BGRegionsDumpHandler bg_handler(
         search_area,
-        parse_node_patterns(patterns["nodePatterns"]),
-        parse_way_patterns(patterns["wayPatterns"]),
+        IO::parse_node_patterns(patterns["nodePatterns"]),
+        IO::parse_way_patterns(patterns["wayPatterns"]),
         area_rules
     );
     do_query(osm_file, area_englobing_filter, bg_handler);

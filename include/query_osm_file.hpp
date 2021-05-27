@@ -4,6 +4,9 @@
 #include <filesystem>  // filesystem::path
 #include <fstream>
 
+#include <boost/range/algorithm.hpp>
+#include <boost/range/adaptors.hpp>
+
 #include <osmium/area/assembler.hpp>
 #include <osmium/area/multipolygon_manager.hpp>
 #include <osmium/dynamic_handler.hpp>
@@ -12,11 +15,8 @@
 #include <osmium/visitor.hpp>
 #include <osmium/index/map/flex_mem.hpp>
 
-#include "parse_patterns.hpp"
+#include "io/parse_patterns.hpp"
 #include "bg_regions_dump_handler.hpp"
-
-#include <boost/range/algorithm.hpp>
-#include <boost/range/adaptors.hpp>
 
 std::vector<Region> query_osm_file(
         const std::filesystem::path & input_file,

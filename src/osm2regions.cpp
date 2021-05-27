@@ -4,8 +4,8 @@
 
 #include "bg_types.hpp"
 #include "query_osm_file.hpp"
-#include "bg_utils.hpp"
-#include "io.hpp"
+#include "io/print_geojson.hpp"
+#include "io/print_svg.hpp"
 
 #include <boost/program_options.hpp>
 namespace bpo = boost::program_options;
@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<Region> regions = query_osm_file(input_file, patterns_file, area_pattern_file);
 
-    print_geojson(regions, output_file);
+    IO::print_geojson(regions, output_file);
     if(generate_svg)
-        plot_svg(regions, output_file.replace_extension(".svg"));
+        IO::print_svg(regions, output_file.replace_extension(".svg"));
 }
