@@ -1,26 +1,11 @@
 # OSM2Landscape
 
-## Build process
+## Requirements
 
-the build process require CMake 3.12 or above and the Conan C/C++ package manager to automatically resolve the dependencies :
+This project uses CMake (https://cmake.org/) and Conan (https://conan.io/index.html).
+All dependencies are automatically resolved by Conan except libosmium (https://osmcode.org/libosmium/)
 
-    mkdir build && cd build
-	conan install ..
-	cmake .. -DCMAKE_BUILD_TYPE=Release
-	cmake --build .
+## How to compile
 
-
-### Configure Conan for GCC >= 5.1
-
-    conan profile update settings.compiler.libcxx=libstdc++11 default
-
-
-## Dependencies
-
-nlohmann_json 3.9.1 (https://github.com/nlohmann/json)
-poco 1.10.1 (https://github.com/pocoproject/poco)
-boost 1.75.0 (https://www.boost.org/)
-
-libosmium
-
+	make
 
