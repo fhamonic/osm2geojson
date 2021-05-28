@@ -66,7 +66,7 @@ namespace IO {
         simdjson::ondemand::object obj = doc.get_object();
 
         if(obj.find_field("type") != "FeatureCollection")
-            throw std::runtime_error("json_file is not FeatureCollection");
+            throw std::runtime_error(json_file.filename().string() + " is not of type FeatureCollection");
 
         for(auto region : obj.find_field("features").get_array()) {
             auto geometry = region.find_field("geometry");

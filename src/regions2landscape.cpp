@@ -18,7 +18,10 @@ namespace bpo = boost::program_options;
 
 #include "region.hpp"
 #include "io/parse_geojson.hpp"
+#include "io/print_svg.hpp"
 #include "bg_h3_interface.hpp"
+
+#include "chrono.hpp"
 
 static bool process_command_line(int argc, char* argv[], 
     std::filesystem::path & input_file, std::filesystem::path & output_file,
@@ -59,8 +62,15 @@ int main(int argc, char* argv[]) {
     if(!valid_command)
         return EXIT_FAILURE;
 
+    Chrono chrono;
 
     std::vector<Region> regions = IO::parse_geojson(input_file);
+
+    std::cout << "parsed geojson in " << chrono.lapTimeMs() << " ms" << std::endl;
+
+    IO::print_svg(regions, "data/test.svg");
+
+    std::cout << "printed svg in " << chrono.lapTimeMs() << " ms" << std::endl;
     
 
     // using RTree = bgi::rtree<std::pair<BoxGeo,size_t>, bgi::rstar<16,4>>;

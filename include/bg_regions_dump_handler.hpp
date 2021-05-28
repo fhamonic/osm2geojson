@@ -15,6 +15,8 @@
 
 #include <boost/log/trivial.hpp>
 
+#include <iterator>
+
 class BGRegionsDumpHandler : public osmium::handler::Handler {
 private:
     osmium::geom::BGFactory m_factory;
@@ -22,7 +24,8 @@ private:
     MultipolygonGeo search_area;
     BoxGeo search_area_box;
 
-    bool fusion_test(const std::vector<std::pair<std::string, std::string>> & tags, const std::vector<std::pair<std::string, std::string>> & filter) {
+    template <typename Tags>
+    bool fusion_test(Tags&& tags, const std::vector<std::pair<std::string, std::string>> & filter) {
         auto tags_first = tags.cbegin(); 
         auto tags_last = tags.cend(); 
         auto filter_first = filter.cbegin(); 
@@ -97,15 +100,14 @@ public:
             if(!boost::geometry::covered_by(m_factory.create_point(node), search_area_box))
                 return;
 
-            std::vector<std::pair<std::string, std::string>> tags;
-            tags.reserve(node.tags().size());
-            boost::transform(node.tags(), std::back_inserter(tags), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
+            std::vector<std::pair<std::string_view, std::string_view>> tags(node.tags().size());
+            boost::transform(node.tags(), tags.begin(), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
             boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.first < p2.first; });
 
             for(auto & [filter, builder] : node_filters) {
                 if(!fusion_test(tags, filter)) continue;
 
-                regions.emplace_back(builder.build(std::move(tags), m_factory.create_point(node)));
+                regions.emplace_back(builder.build(tags, m_factory.create_point(node)));
                 if(search_area.empty() || boost::geometry::covered_by(regions.back().multipolygon, search_area))
                     return;
                 regions.pop_back();
@@ -122,8 +124,8 @@ public:
             if(!search_area.empty() && !boost::geometry::intersects(m_factory.envelope(way), search_area_box))
                 return;
 
-            std::vector<std::pair<std::string, std::string>> tags;
-            boost::transform(way.tags(), std::back_inserter(tags), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
+            std::vector<std::pair<std::string_view, std::string_view>> tags(way.tags().size());
+            boost::transform(way.tags(), tags.begin(), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
             boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.first < p2.first; });
 
             for(auto & [filter, builder] : way_filters) {
@@ -146,9 +148,8 @@ public:
             if(!search_area.empty() && !boost::geometry::intersects(m_factory.envelope(area), search_area_box))
                 return;
 
-            std::vector<std::pair<std::string, std::string>> tags;
-            tags.reserve(area.tags().size());
-            boost::transform(area.tags(), std::back_inserter(tags), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
+            std::vector<std::pair<std::string_view, std::string_view>> tags(area.tags().size());
+            boost::transform(area.tags(), tags.begin(), [](const osmium::Tag & tag) { return std::make_pair(tag.key(), tag.value()); });
             boost::sort(tags, [](const auto & p1, const auto & p2){ return p1.first < p2.first; });
 
             for(auto & [filter, builder] : area_filters) {

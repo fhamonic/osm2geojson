@@ -71,7 +71,7 @@ int main(int argc, char* argv[]) {
 
     std::vector<Region> regions = query_osm_file(input_file, patterns_file, area_pattern_file);
 
-    IO::print_geojson(regions, output_file);
-    if(generate_svg)
-        IO::print_svg(regions, output_file.replace_extension(".svg"));
+    // IO::print_geojson(regions, output_file);
+    // if(generate_svg)
+    //     IO::print_svg(regions, output_file.replace_extension(".svg"));
 }

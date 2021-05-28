@@ -37,7 +37,7 @@ target_compile_options_if_exists(osm2regions PRIVATE ${WARNINGS} -Wall)
 target_compile_options_if_exists(osm2regions PRIVATE ${COMPILE_FOR_NATIVE} -march=native)
 target_compile_options_if_exists(osm2regions PRIVATE ${COMPILE_WITH_LTO} -flto)
 
-add_executable(regions2landscape src/bg_h3_interface.cpp src/io/parse_geojson.cpp src/regions2landscape.cpp)
+add_executable(regions2landscape src/bg_h3_interface.cpp src/io/parse_geojson.cpp src/io/print_svg.cpp src/regions2landscape.cpp)
 target_include_directories(regions2landscape PRIVATE include)
 target_link_libraries(regions2landscape CONAN_PKG::boost)
 target_link_libraries(regions2landscape CONAN_PKG::tbb)
