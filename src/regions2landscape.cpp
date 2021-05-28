@@ -64,21 +64,31 @@ int main(int argc, char* argv[]) {
 
     Chrono chrono;
 
-    std::vector<Region> regions = IO::parse_geojson(input_file);
-
-    std::cout << "parsed geojson in " << chrono.lapTimeMs() << " ms" << std::endl;
-
-    IO::print_svg(regions, "data/test.svg");
-
-    std::cout << "printed svg in " << chrono.lapTimeMs() << " ms" << std::endl;
+    std::vector<Region> raw_regions = IO::parse_geojson(input_file);
     
+    std::cout << "parse regions in " << chrono.lapTimeMs() << " ms" << std::endl;
+    
+    if(!std::all_of(raw_regions.cbegin(), raw_regions.cend(), [](const auto & p){ return p.hasProperty("qualityCoef") && p.hasProperty("probConnectionPerMeter"); }))
+        throw std::runtime_error("require \"qualityCoef\" and \"probConnectionPerMeter\" properties for every regions");
 
-    // using RTree = bgi::rtree<std::pair<BoxGeo,size_t>, bgi::rstar<16,4>>;
-    // RTree rtree(regions | ba::indexed(0) | ba::transformed([](const auto& e) {
-    //     return std::make_pair(bg::return_envelope<BoxGeo>(e.value().multipolygon), e.index());
-    // }));
+    std::vector<std::pair<MultipolygonGeo,std::pair<double, double>>> regions(raw_regions.size());
+    try {
+        std::transform(raw_regions.cbegin(), raw_regions.cend(), regions.begin(), [](const Region & r){ 
+            return std::make_pair(r.multipolygon, std::make_pair(std::atof(r.getProperty("qualityCoef").c_str()), 
+                        std::atof(r.getProperty("probConnectionPerMeter").c_str()))); });
+    } catch(std::invalid_argument & e) {
+        throw std::runtime_error("require \"qualityCoef\" and \"probConnectionPerMeter\" properties to be numbers");
+    }
+    
+    std::cout << "raw_regions to regions in " << chrono.lapTimeMs() << " ms" << std::endl;
+
+    using RTree = bgi::rtree<std::pair<BoxGeo,size_t>, bgi::rstar<16,4>>;
+    RTree rtree(regions | ba::indexed(0) | ba::transformed([](const auto& e) {
+        return std::make_pair(bg::return_envelope<BoxGeo>(e.value().first), e.index());
+    }));
 
 
+    std::cout << "construct R-tree in " << chrono.lapTimeMs() << " ms" << std::endl;
 
     // PolygonGeo hull;
     // // if(search_area_provided) {
