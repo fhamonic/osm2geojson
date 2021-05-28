@@ -23,16 +23,33 @@ namespace bpo = boost::program_options;
 
 #include "chrono.hpp"
 
+#define DEFAULT_QUALITY_COEF 0
+#define DEFAULT_PROB_COEF 0.995
+
+struct RegionInfos {
+    double qualityCoef;
+    double probConnectionPerMeter;
+    int overrideLevel;
+
+    public:
+        RegionInfos() = default;
+        RegionInfos(double qualityCoef, double probConnectionPerMeter, int overrideLevel)
+            : qualityCoef(qualityCoef)
+            , probConnectionPerMeter(probConnectionPerMeter)
+            , overrideLevel(overrideLevel) {}
+};
+
 static bool process_command_line(int argc, char* argv[], 
-    std::filesystem::path & input_file, std::filesystem::path & output_file,
-    int & hexagons_resolution, bool & generate_svg) {
+    std::filesystem::path & input_file, std::filesystem::path & output_file, std::filesystem::path & area_file,
+    int & hexagons_resolution, bool & generate_svg, bool & area_provided) {
     try {
         bpo::options_description desc("Allowed options");
         desc.add_options()
             ("help,h", "produce help message")
             ("input,i", bpo::value<std::filesystem::path>(&input_file)->required(), "set input geojson file")
             ("output,o", bpo::value<std::filesystem::path>(&output_file)->required(), "set output geojson file")
-            ("hexagons-level,l", bpo::value<int>(&hexagons_resolution)->required(), "set regions patterns description json file")
+            ("area,a", bpo::value<std::filesystem::path>(&area_file), "set area to process geojson geometry file, if not precised the whole box area is processed")
+            ("hexagons-level,l", bpo::value<int>(&hexagons_resolution)->required(), "set h3 hexagons resolution")
             ("generate-svg", "generate the svg file of the result regions")
         ;
         bpo::positional_options_description p;
@@ -45,6 +62,7 @@ static bool process_command_line(int argc, char* argv[],
         }
         bpo::notify(vm); 
         generate_svg = (vm.count("generate-svg") > 0);
+        area_provided = (vm.count("area") > 0);
     } catch(std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return false;
@@ -55,10 +73,12 @@ static bool process_command_line(int argc, char* argv[],
 int main(int argc, char* argv[]) {
     std::filesystem::path input_file;
     std::filesystem::path output_file;
+    std::filesystem::path area_file;
     int hex_resolution;
     bool generate_svg;
+    bool area_provided;
 
-    bool valid_command = process_command_line(argc, argv, input_file, output_file, hex_resolution, generate_svg);
+    bool valid_command = process_command_line(argc, argv, input_file, output_file, area_file, hex_resolution, generate_svg, area_provided);
     if(!valid_command)
         return EXIT_FAILURE;
 
@@ -68,16 +88,18 @@ int main(int argc, char* argv[]) {
     
     std::cout << "parse regions in " << chrono.lapTimeMs() << " ms" << std::endl;
     
-    if(!std::all_of(raw_regions.cbegin(), raw_regions.cend(), [](const auto & p){ return p.hasProperty("qualityCoef") && p.hasProperty("probConnectionPerMeter"); }))
-        throw std::runtime_error("require \"qualityCoef\" and \"probConnectionPerMeter\" properties for every regions");
-
-    std::vector<std::pair<MultipolygonGeo,std::pair<double, double>>> regions(raw_regions.size());
+    std::vector<std::pair<MultipolygonGeo,RegionInfos>> regions(raw_regions.size());
     try {
-        std::transform(raw_regions.cbegin(), raw_regions.cend(), regions.begin(), [](const Region & r){ 
-            return std::make_pair(r.multipolygon, std::make_pair(std::atof(r.getProperty("qualityCoef").c_str()), 
-                        std::atof(r.getProperty("probConnectionPerMeter").c_str()))); });
+        std::transform(raw_regions.cbegin(), raw_regions.cend(), regions.begin(), [](const Region & r) {
+            if(! (r.hasProperty("qualityCoef") && r.hasProperty("probConnectionPerMeter")))
+                throw std::runtime_error("require \"qualityCoef\" and \"probConnectionPerMeter\" properties for every regions");
+            return std::make_pair(r.multipolygon, RegionInfos(
+                std::atof(r.getProperty("qualityCoef").c_str()), 
+                std::atof(r.getProperty("probConnectionPerMeter").c_str()), 
+                r.hasProperty("overrideLevel") ? std::atoi(r.getProperty("overrideLevel").c_str()) : 0));
+        });
     } catch(std::invalid_argument & e) {
-        throw std::runtime_error("require \"qualityCoef\" and \"probConnectionPerMeter\" properties to be numbers");
+        throw std::runtime_error("require \"qualityCoef\" and \"probConnectionPerMeter\" properties to be number strings");
     }
     
     std::cout << "raw_regions to regions in " << chrono.lapTimeMs() << " ms" << std::endl;
@@ -87,93 +109,89 @@ int main(int argc, char* argv[]) {
         return std::make_pair(bg::return_envelope<BoxGeo>(e.value().first), e.index());
     }));
 
-
     std::cout << "construct R-tree in " << chrono.lapTimeMs() << " ms" << std::endl;
 
-    // PolygonGeo hull;
-    // // if(search_area_provided) {
-    // //     MultipolygonGeo search_area = bg_handler.getSearchArea();
-    // //     bg::convex_hull(search_area, hull);
-    // // } else {
-    //     bg::convert(rtree.bounds(), hull);
-    // // }
+    PolygonGeo hull;
+    if(area_provided) {
+        MultipolygonGeo search_area = IO::parse_geojson_multipolygon(area_file);
+        bg::convex_hull(search_area, hull);
+    } else {
+        bg::convert(rtree.bounds(), hull);
+    }
+
+    std::vector<H3Index> hex_indices = polyfill(hull, hex_resolution);
+    std::vector<std::tuple<H3Index, double, double>> hex_datas;
+    hex_datas.resize(hex_indices.size());
+
+    std::transform(std::execution::par_unseq, hex_indices.cbegin(), hex_indices.cend(), hex_datas.begin(), [&rtree, &regions](const H3Index i){ 
+        RingGeo r = indexToRing(i);
+        PointGeo center = indexToCenter(i);
+        srs::projection<> proj = srs::proj4("+proj=eqc +ellps=GRS80 +lon_0="+ std::to_string(center.get<0>()) +" +lat_0="+ std::to_string(center.get<1>()));
+        Ring2D r2d;
+        proj.forward(r, r2d);
+
+        std::vector<std::pair<Multipolygon2D, RegionInfos>> intersected_regions2d;
+        for(const auto & result : rtree | bgi::adaptors::queried(bgi::intersects(bg::return_envelope<BoxGeo>(r)) && bgi::satisfies([&regions, &r](const auto & v) {
+                return bg::intersects(r, regions[v.second].first);}))) {
+            intersected_regions2d.emplace_back(std::piecewise_construct, 
+                    std::forward_as_tuple(), std::forward_as_tuple(regions[result.second].second));
+            proj.forward(regions[result.second].first, intersected_regions2d.back().first);
+        }
+
+        boost::sort(intersected_regions2d, [](std::pair<Multipolygon2D, RegionInfos> & e1, std::pair<Multipolygon2D, RegionInfos> & e2){
+            if(e1.second.overrideLevel == e2.second.overrideLevel)
+                return e1.second.qualityCoef > e2.second.qualityCoef;
+            return e1.second.overrideLevel > e2.second.overrideLevel;
+        });
+
+        Multipolygon2D mp2d;
+        bg::convert(r2d, mp2d);
+
+        const double area = bg::area(r2d);
+        double sum_quality = 0;
+        double sum_prob = 0;
+        for(const auto & p : intersected_regions2d) {
+            Multipolygon2D intersections;
+            bg::intersection(r2d, p.first, intersections);
+
+            const double intersections_area = bg::area(intersections);
+            sum_quality += intersections_area * p.second.qualityCoef;
+            sum_prob += intersections_area * p.second.probConnectionPerMeter;
+            Multipolygon2D diff_result;
+            bg::difference(mp2d, intersections, diff_result);
+            mp2d = std::move(diff_result);
+
+            if(bg::is_empty(mp2d)) break;
+        }
+        sum_quality += DEFAULT_QUALITY_COEF * bg::area(mp2d);
+        sum_prob += DEFAULT_PROB_COEF * bg::area(mp2d);
+
+        return std::make_tuple(i, sum_quality/area, sum_prob/area);
+    });
+
+    std::cout << "Compelte polyfill in " << chrono.lapTimeMs() << " ms" << std::endl;
 
 
+    if(generate_svg) {
+        std::ofstream svg(output_file.replace_extension(".svg"));
+        bg::svg_mapper<PointGeo> mapper(svg, 100,100);
+        mapper.add(hull);
+        mapper.map(hull, "fill-opacity:0.2;fill:rgb(32,32,32);stroke:rgb(0,0,0);stroke-width:0.01");
 
-    // std::vector<H3Index> hex_indices = polyfill(hull, hex_resolution);
-    // std::vector<std::tuple<H3Index, double, double>> hex_datas;
-    // hex_datas.resize(hex_indices.size());
+        double min_quality = *boost::min_element(hex_datas | ba::transformed([](auto & t){ return std::get<1>(t); }));
+        double max_quality = *boost::max_element(hex_datas | ba::transformed([](auto & t){ return std::get<1>(t); }));
+        double min_resistance = *boost::min_element(hex_datas | ba::transformed([](auto & t){ return std::get<2>(t); }));
+        double max_resistance = *boost::max_element(hex_datas | ba::transformed([](auto & t){ return std::get<2>(t); }));
 
-    // // int caca_diff = 0;
-
-    // std::transform(std::execution::par_unseq, hex_indices.cbegin(), hex_indices.cend(), hex_datas.begin(), [&rtree, &regions/*, &caca_diff*/](const H3Index i){ 
-    //     RingGeo r = indexToRing(i);
-    //     PointGeo center = indexToCenter(i);
-    //     srs::projection<> proj = srs::proj4("+proj=eqc +ellps=GRS80 +lon_0="+ std::to_string(center.get<0>()) +" +lat_0="+ std::to_string(center.get<1>()));
-    //     Ring2D r2d;
-    //     proj.forward(r, r2d);
-
-    //     std::vector<std::pair<Multipolygon2D, RegionInfo>> intersected_regions2d;
-    //     for(const auto & result : rtree | bgi::adaptors::queried(bgi::intersects(bg::return_envelope<BoxGeo>(r)) && bgi::satisfies([&regions, &r](const auto & v) {
-    //             return bg::intersects(r, regions[v.second].first);}))) {
-    //         intersected_regions2d.emplace_back(std::piecewise_construct, 
-    //                 std::forward_as_tuple(), std::forward_as_tuple(regions[result.second].second));
-    //         proj.forward(regions[result.second].first, intersected_regions2d.back().first);
-    //     }
-
-    //     boost::sort(intersected_regions2d, [](std::pair<Multipolygon2D, RegionInfo> e1, std::pair<Multipolygon2D, RegionInfo> e2){
-    //         if(e1.second.overrideLevel == e2.second.overrideLevel)
-    //             return e1.second.qualityCoef > e2.second.qualityCoef;
-    //         return e1.second.overrideLevel > e2.second.overrideLevel;
-    //     });
-
-    //     Multipolygon2D mp2d;
-    //     bg::convert(r2d, mp2d);
-
-    //     const double area = bg::area(r2d);
-    //     double sum_quality = 0;
-    //     double sum_prob = 0;
-    //     for(const auto & p : intersected_regions2d) {
-    //         Multipolygon2D intersections;
-    //         bg::intersection(r2d, p.first, intersections);
-
-    //         const double intersections_area = bg::area(intersections);
-    //         sum_quality += intersections_area * p.second.qualityCoef;
-    //         sum_prob += intersections_area * p.second.probConnectionPerMeter;
-    //         Multipolygon2D diff_result;
-    //         bg::difference(mp2d, intersections, diff_result);
-    //         mp2d = std::move(diff_result);
-
-    //         if(bg::is_empty(mp2d)) break;
-    //         // if(!bg::is_valid(mp2d)) ++caca_diff;
-    //     }
-    //     sum_quality += DEFAULT_QUALITY_COEF * bg::area(mp2d);
-    //     sum_prob += DEFAULT_PROB_COEF * bg::area(mp2d);
-
-    //     return std::make_tuple(i, sum_quality/area, sum_prob/area);
-    // });
-
-    // // std::cout << "CACA:" << std::endl
-    // //         << "\tdiff: " << caca_diff << std::endl ;
-
-    // std::cout << "Compelte polyfill in " << chrono.lapTimeMs() << " ms" << std::endl;
+        for(const auto & [i, quality, prob] : hex_datas) {
+            RingGeo r = indexToRing(i);
+            int red = 255 - 255 * ((max_resistance-min_resistance)!=0 ? (prob-min_resistance)/(max_resistance-min_resistance) : 1);
+            int green = 255 * ((max_quality-min_quality)!=0 ? (quality-min_quality)/(max_quality-min_quality) : 1);
+            mapper.map(r, "fill-opacity:0.5;fill:rgb(" + std::to_string(red) + "," + std::to_string(green) + ",0);stroke:rgb(0,0,0);stroke-width:0");
+        }
+        std::cout << "Generate svg in " << chrono.lapTimeMs() << " ms" << std::endl;
+    }
 
 
-
-    // std::ofstream svg("marseille_weighted_hexs.svg");
-    // bg::svg_mapper<PointGeo> mapper(svg, 100,100);
-    // mapper.add(hull);
-    // mapper.map(hull, "fill-opacity:0.2;fill:rgb(32,32,32);stroke:rgb(0,0,0);stroke-width:0.01");
-
-    // double min_quality = *boost::min_element(hex_datas | ba::transformed([](auto & t){ return std::get<1>(t); }));
-    // double max_quality = *boost::max_element(hex_datas | ba::transformed([](auto & t){ return std::get<1>(t); }));
-    // double min_resistance = *boost::min_element(hex_datas | ba::transformed([](auto & t){ return std::get<2>(t); }));
-    // double max_resistance = *boost::max_element(hex_datas | ba::transformed([](auto & t){ return std::get<2>(t); }));
-
-    // for(const auto & [i, quality, prob] : hex_datas) {
-    //     RingGeo r = indexToRing(i);
-    //     int red = 255 - 255 * ((max_resistance-min_resistance)!=0 ? (prob-min_resistance)/(max_resistance-min_resistance) : 1);
-    //     int green = 255 * ((max_quality-min_quality)!=0 ? (quality-min_quality)/(max_quality-min_quality) : 1);
-    //     mapper.map(r, "fill-opacity:0.5;fill:rgb(" + std::to_string(red) + "," + std::to_string(green) + ",0);stroke:rgb(0,0,0);stroke-width:0");
-    // }
+    return EXIT_SUCCESS;
 }

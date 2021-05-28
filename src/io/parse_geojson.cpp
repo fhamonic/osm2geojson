@@ -58,6 +58,20 @@ namespace IO {
         return prop;
     }
 
+
+    MultipolygonGeo parse_geojson_multipolygon(const std::filesystem::path & json_file) {
+        std::vector<Region> regions;
+        simdjson::ondemand::parser parser;
+        auto json = simdjson::padded_string::load(json_file);
+        simdjson::ondemand::document doc = parser.iterate(json);
+        simdjson::ondemand::object obj = doc.get_object();
+
+        if(obj.find_field("type") != "MultiPolygon")
+            throw std::runtime_error("region geometry with type != MultiPolygon");
+
+        return parse_geojson_multipolygon(obj["coordinates"].get_array());
+    }
+
     std::vector<Region> parse_geojson(const std::filesystem::path & json_file) {
         std::vector<Region> regions;
         simdjson::ondemand::parser parser;

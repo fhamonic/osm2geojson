@@ -13,5 +13,6 @@
 
 namespace IO {
     std::vector<Region> parse_geojson(const std::filesystem::path & json_file);
+    MultipolygonGeo parse_geojson_multipolygon(const std::filesystem::path & json_file);
 }
 #endif // PARSE_GEOJSON_HPP
