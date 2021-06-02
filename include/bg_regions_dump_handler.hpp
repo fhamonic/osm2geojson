@@ -92,6 +92,13 @@ public:
 
     const BoxGeo & getSearchBox() const noexcept { return search_area_box; }
     const MultipolygonGeo & getSearchArea() const noexcept { return search_area; }
+    osmium::TagsFilter getAreaEnglobingFilter() const noexcept {
+        osmium::TagsFilter filter{false};
+        for(const auto & rule : area_filters)
+            for(const auto & [tag, value] : rule.first)
+                filter.add_rule(true, tag, value);
+        return filter;
+    }
 
     const std::vector<Region> & getRegions() const noexcept { return regions; }
 

@@ -1,14 +1,6 @@
 #include "io/parse_patterns.hpp"
 
 namespace IO {
-    osmium::TagsFilter rules_to_tagsfilter(const std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,AreaRegionBuilder>> & rules) {
-        osmium::TagsFilter filter{false};
-        for(const auto & rule : rules)
-            for(const auto & [tag, value] : rule.first)
-                filter.add_rule(true, tag, value);
-        return filter;
-    }
-
     static std::vector<std::pair<std::string,std::string>> parse_tags_rule(const nlohmann::json & rule) {
         std::vector<std::pair<std::string,std::string>> tags;
         if(!rule.contains("matchPropertiesValues"))

@@ -18,9 +18,11 @@
 #include "io/parse_patterns.hpp"
 #include "bg_regions_dump_handler.hpp"
 
-std::vector<Region> query_osm_file(
-        const std::filesystem::path & input_file,
-        const std::filesystem::path & patterns_file, 
+MultipolygonGeo query_osm_search_area(const std::filesystem::path & input_file,
         const std::filesystem::path & search_area_pattern_file);
+
+std::vector<Region> query_osm_regions(const std::filesystem::path & input_file,
+        const std::filesystem::path & patterns_file, 
+        const MultipolygonGeo & search_area);
 
 #endif // QUERY_OSM_FILE_HPP

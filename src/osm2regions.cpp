@@ -4,6 +4,7 @@
 
 #include "bg_types.hpp"
 #include "query_osm_file.hpp"
+#include "io/parse_geojson.hpp"
 #include "io/print_geojson.hpp"
 #include "io/print_svg.hpp"
 
@@ -25,7 +26,8 @@ void init_logging(bool no_warnings){
 
 static bool process_command_line(int argc, char* argv[], 
         std::filesystem::path & input_file, std::filesystem::path & patterns_file,
-        std::filesystem::path & output_file, std::filesystem::path & area_file,
+        std::filesystem::path & output_file, std::filesystem::path & area_pattern_file, std::filesystem::path & area_file,
+        bool & provided_area_pattern, bool & provided_area_file,
         bool & generate_svg, bool & no_warnings) {
     try {
         bpo::options_description desc("Allowed options");
@@ -34,7 +36,8 @@ static bool process_command_line(int argc, char* argv[],
             ("input,i", bpo::value<std::filesystem::path>(&input_file)->required(), "set input PBF file")
             ("patterns,p", bpo::value<std::filesystem::path>(&patterns_file)->required(), "set regions patterns description json file")
             ("output,o", bpo::value<std::filesystem::path>(&output_file)->required(), "set output geojson file")
-            ("search-area,a", bpo::value<std::filesystem::path>(&area_file), "set search area pattern file")
+            ("search-area-pattern", bpo::value<std::filesystem::path>(&area_pattern_file), "set search area geojson file")
+            ("search-area-file,a", bpo::value<std::filesystem::path>(&area_file), "set search area pattern file")
             ("generate-svg", "generate the svg file of the result regions")
             ("no-warnings", "silence warning prints")
         ;
@@ -47,6 +50,8 @@ static bool process_command_line(int argc, char* argv[],
             return false;
         }
         bpo::notify(vm); 
+        provided_area_pattern = (vm.count("search-area-pattern") > 0);
+        provided_area_file = (vm.count("search-area-file") > 0);
         generate_svg = (vm.count("generate-svg") > 0);
         no_warnings = (vm.count("no-warnings") > 0);
     } catch(std::exception& e) {
@@ -61,15 +66,26 @@ int main(int argc, char* argv[]) {
     std::filesystem::path patterns_file;
     std::filesystem::path output_file;
     std::filesystem::path area_pattern_file;
+    std::filesystem::path area_file;
+    bool provided_area_pattern;
+    bool provided_area_file;
     bool generate_svg;
     bool no_warnings;
 
-    bool valid_command = process_command_line(argc, argv, input_file, patterns_file, output_file, area_pattern_file, generate_svg, no_warnings);
+    bool valid_command = process_command_line(argc, argv, 
+            input_file, patterns_file, output_file, area_pattern_file, area_file, 
+            provided_area_pattern, provided_area_file, generate_svg, no_warnings);
     if(!valid_command)
         return EXIT_FAILURE;
     init_logging(no_warnings);
 
-    std::vector<Region> regions = query_osm_file(input_file, patterns_file, area_pattern_file);
+    MultipolygonGeo search_area;
+    if(provided_area_pattern)
+        search_area = query_osm_search_area(input_file, area_pattern_file);
+    if(provided_area_file)
+        search_area = IO::parse_geojson_multipolygon(area_file);
+
+    std::vector<Region> regions = query_osm_regions(input_file, patterns_file, search_area);
 
     IO::print_geojson(regions, output_file);
     if(generate_svg)
