@@ -1,11 +1,11 @@
 
-#include "io/print_svg.hpp"
+#include "io/print_regions_svg.hpp"
 
 namespace bg = boost::geometry;
 namespace ba = boost::adaptors;
 
 namespace IO {
-    void print_svg(const std::vector<Region> & raw_regions, const std::filesystem::path & svg_file) {
+    void print_regions_svg(const std::vector<Region> & raw_regions, const std::filesystem::path & svg_file) {
         std::ofstream svg(svg_file);
         bg::svg_mapper<PointGeo> mapper(svg, 1500, 1500);
 

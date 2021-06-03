@@ -25,4 +25,6 @@ RingGeo indexToRing(H3Index index) noexcept;
 
 std::vector<H3Index> polyfill(const PolygonGeo & hull, int res) noexcept;
 
+std::array<H3Index,6> indexToNeighbors(H3Index index);
+
 #endif // BG_H3_INTERFACE_HPP

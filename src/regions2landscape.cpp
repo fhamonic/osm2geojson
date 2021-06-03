@@ -18,7 +18,7 @@ namespace bpo = boost::program_options;
 
 #include "region.hpp"
 #include "io/parse_geojson.hpp"
-#include "io/print_svg.hpp"
+#include "io/print_hexagons_svg.hpp"
 #include "bg_h3_interface.hpp"
 
 #include "chrono.hpp"
@@ -109,7 +109,7 @@ int main(int argc, char* argv[]) {
         return std::make_pair(bg::return_envelope<BoxGeo>(e.value().first), e.index());
     }));
 
-    std::cout << "construct R-tree in " << chrono.lapTimeMs() << " ms" << std::endl;
+    std::cout << "constructed R-tree in " << chrono.lapTimeMs() << " ms" << std::endl;
 
     PolygonGeo hull;
     if(area_provided) {
@@ -171,27 +171,10 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Compelte polyfill in " << chrono.lapTimeMs() << " ms" << std::endl;
 
+    if(generate_svg)
+        IO::print_hexagons_svg(hex_datas, output_file.replace_extension(".svg"));
 
-    if(generate_svg) {
-        std::ofstream svg(output_file.replace_extension(".svg"));
-        bg::svg_mapper<PointGeo> mapper(svg, 100,100);
-        mapper.add(hull);
-        mapper.map(hull, "fill-opacity:0.2;fill:rgb(32,32,32);stroke:rgb(0,0,0);stroke-width:0.01");
-
-        double min_quality = *boost::min_element(hex_datas | ba::transformed([](auto & t){ return std::get<1>(t); }));
-        double max_quality = *boost::max_element(hex_datas | ba::transformed([](auto & t){ return std::get<1>(t); }));
-        double min_resistance = *boost::min_element(hex_datas | ba::transformed([](auto & t){ return std::get<2>(t); }));
-        double max_resistance = *boost::max_element(hex_datas | ba::transformed([](auto & t){ return std::get<2>(t); }));
-
-        for(const auto & [i, quality, prob] : hex_datas) {
-            RingGeo r = indexToRing(i);
-            int red = 255 - 255 * ((max_resistance-min_resistance)!=0 ? (prob-min_resistance)/(max_resistance-min_resistance) : 1);
-            int green = 255 * ((max_quality-min_quality)!=0 ? (quality-min_quality)/(max_quality-min_quality) : 1);
-            mapper.map(r, "fill-opacity:0.5;fill:rgb(" + std::to_string(red) + "," + std::to_string(green) + ",0);stroke:rgb(0,0,0);stroke-width:0");
-        }
-        std::cout << "Generate svg in " << chrono.lapTimeMs() << " ms" << std::endl;
-    }
-
-
+    std::cout << "Generate svg in " << chrono.lapTimeMs() << " ms" << std::endl;
+    
     return EXIT_SUCCESS;
 }

@@ -1,5 +1,5 @@
-#ifndef PRINT_SVG_HPP
-#define PRINT_SVG_HPP 
+#ifndef PRINT_REGIONS_SVG_HPP
+#define PRINT_REGIONS_SVG_HPP 
 
 #include <filesystem>
 #include <iostream>
@@ -15,7 +15,7 @@
 #include <boost/range/adaptors.hpp>
 
 namespace IO {
-    void print_svg(const std::vector<Region> & regions, const std::filesystem::path & svg_file);
+    void print_regions_svg(const std::vector<Region> & regions, const std::filesystem::path & svg_file);
 }
 
-#endif // PRINT_SVG_HPP
+#endif // PRINT_REGIONS_SVG_HPP

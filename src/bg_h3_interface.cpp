@@ -82,3 +82,10 @@ std::vector<H3Index> polyfill(const PolygonGeo & hull, int res) noexcept {
     free_geopolygon(geo_hull);
     return hex_indices;
 }
+
+std::array<H3Index,6> indexToNeighbors(H3Index index) {
+    std::array<H3Index, 6> hex_indices;
+    if(hexRing(index, 1, hex_indices.data()))
+        throw std::runtime_error("fucking pentagon");
+    return hex_indices;
+}

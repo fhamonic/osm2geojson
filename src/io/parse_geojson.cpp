@@ -58,7 +58,6 @@ namespace IO {
         return prop;
     }
 
-
     MultipolygonGeo parse_geojson_multipolygon(const std::filesystem::path & json_file) {
         std::vector<Region> regions;
         simdjson::ondemand::parser parser;

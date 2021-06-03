@@ -6,7 +6,7 @@
 #include "query_osm_file.hpp"
 #include "io/parse_geojson.hpp"
 #include "io/print_geojson.hpp"
-#include "io/print_svg.hpp"
+#include "io/print_regions_svg.hpp"
 
 #include <boost/program_options.hpp>
 namespace bpo = boost::program_options;
@@ -89,5 +89,5 @@ int main(int argc, char* argv[]) {
 
     IO::print_geojson(regions, output_file);
     if(generate_svg)
-        IO::print_svg(regions, output_file.replace_extension(".svg"));
+        IO::print_regions_svg(regions, output_file.replace_extension(".svg"));
 }
