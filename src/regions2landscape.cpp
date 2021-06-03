@@ -16,6 +16,11 @@ namespace ba = boost::adaptors;
 #include <boost/program_options.hpp>
 namespace bpo = boost::program_options;
 
+#include <boost/graph/adjacency_list.hpp>
+#include <boost/graph/graphviz.hpp>
+
+#include <tsl/robin_map.h>
+
 #include "region.hpp"
 #include "io/parse_geojson.hpp"
 #include "io/print_hexagons_svg.hpp"
@@ -25,6 +30,15 @@ namespace bpo = boost::program_options;
 
 #define DEFAULT_QUALITY_COEF 0
 #define DEFAULT_PROB_COEF 0.995
+
+struct quality_t {
+    typedef boost::vertex_property_tag kind;
+};
+struct probability_t {
+    typedef boost::edge_property_tag kind;
+};
+
+
 
 struct RegionInfos {
     double qualityCoef;
@@ -41,7 +55,7 @@ struct RegionInfos {
 
 static bool process_command_line(int argc, char* argv[], 
     std::filesystem::path & input_file, std::filesystem::path & output_file, std::filesystem::path & area_file,
-    int & hexagons_resolution, bool & generate_svg, bool & area_provided) {
+    int & hexagons_resolution, bool & generate_svg, bool & area_provided, bool & graphviz) {
     try {
         bpo::options_description desc("Allowed options");
         desc.add_options()
@@ -51,6 +65,7 @@ static bool process_command_line(int argc, char* argv[],
             ("area,a", bpo::value<std::filesystem::path>(&area_file), "set area to process geojson geometry file, if not precised the whole box area is processed")
             ("hexagons-level,l", bpo::value<int>(&hexagons_resolution)->required(), "set h3 hexagons resolution")
             ("generate-svg", "generate the svg file of the result regions")
+            ("graphviz", "generate a vizualization of the graph produced")
         ;
         bpo::positional_options_description p;
         p.add("input", 1).add("output", 1).add("hexagons-level", 1);
@@ -63,6 +78,7 @@ static bool process_command_line(int argc, char* argv[],
         bpo::notify(vm); 
         generate_svg = (vm.count("generate-svg") > 0);
         area_provided = (vm.count("area") > 0);
+        graphviz = (vm.count("graphviz") > 0);
     } catch(std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";
         return false;
@@ -77,8 +93,9 @@ int main(int argc, char* argv[]) {
     int hex_resolution;
     bool generate_svg;
     bool area_provided;
+    bool graphviz;
 
-    bool valid_command = process_command_line(argc, argv, input_file, output_file, area_file, hex_resolution, generate_svg, area_provided);
+    bool valid_command = process_command_line(argc, argv, input_file, output_file, area_file, hex_resolution, generate_svg, area_provided, graphviz);
     if(!valid_command)
         return EXIT_FAILURE;
 
@@ -171,8 +188,55 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Compelte polyfill in " << chrono.lapTimeMs() << " ms" << std::endl;
 
+
+
+    using QualityProperty = boost::property<quality_t, double>;
+    using ProbabilityProperty = boost::property<probability_t, double>;
+    using Graph = boost::adjacency_list<boost::vecS, boost::vecS, boost::undirectedS, 
+            QualityProperty, ProbabilityProperty>;
+    using QualityMap = boost::property_map<Graph, quality_t>::type;
+    using ProbabilityMap = boost::property_map<Graph, probability_t>::type;
+    using Vertex = Graph::vertex_descriptor;
+    using Edge = Graph::edge_descriptor;
+
+    // vertex id
+    tsl::robin_map<H3Index, std::pair<size_t,size_t>> indicesMap;
+    Graph g;
+    QualityMap qualityMap = boost::get(quality_t(), g);
+    ProbabilityMap probabilityMap = boost::get(probability_t(), g);
+
+    for(const auto & p : hex_datas | ba::indexed(0)) {
+        const Vertex v = boost::add_vertex(g);
+        indicesMap[std::get<0>(p.value())] = std::make_pair(v, p.index());
+        qualityMap[v] = std::get<2>(p.value());
+    }
+    for(const auto & [index, center_quality, center_prob] : hex_datas) {
+        Vertex center_vertex = indicesMap[index].first;
+        PointGeo center_point = indexToCenter(index);
+        for(H3Index neighbor : indexToNeighbors(index)) {
+            if(!indicesMap.contains(neighbor)) continue;
+            const Vertex neighbor_vertex = indicesMap[neighbor].first;
+            const PointGeo neightbor_point = indexToCenter(neighbor);
+            const Edge edge = boost::add_edge(center_vertex, neighbor_vertex, g).first;
+            const double neighbor_prob = std::get<2>(hex_datas[indicesMap[neighbor].second]);
+            const double d = bg::distance(center_point, neightbor_point);
+            const double prob = std::pow(center_prob, d/2) * std::pow(neighbor_prob, d/2);
+            probabilityMap[edge] = prob;
+        }    
+    }
+    
+    
+    std::cout << "Generate graph in " << chrono.lapTimeMs() << " ms" << std::endl;
+    std::cout << "number of vertices: " << boost::num_vertices(g) << std::endl; 
+
+
     if(generate_svg)
         IO::print_hexagons_svg(hex_datas, output_file.replace_extension(".svg"));
+
+    if(graphviz) {
+        std::ofstream graphviz_stream(output_file.replace_extension(".dot"));
+        boost::write_graphviz(graphviz_stream, g);
+    }
 
     std::cout << "Generate svg in " << chrono.lapTimeMs() << " ms" << std::endl;
     
