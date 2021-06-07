@@ -8,8 +8,9 @@
 #include <osmium/handler.hpp>
 #include <osmium/tags/tags_filter.hpp>
 
+#include "osmium_utils/bg_factory.hpp"
+
 #include "bg_types.hpp"
-#include "bg_factory.hpp"
 #include "region.hpp"
 #include "region_builders.hpp"
 
@@ -124,6 +125,8 @@ public:
             BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         } catch (const osmium::invalid_location& e) {
             BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
+        } catch (const std::runtime_error& e) {
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         }
     }
     void way(const osmium::Way& way) noexcept {
@@ -148,6 +151,8 @@ public:
             BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         } catch (const osmium::invalid_location& e) {
             BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
+        } catch (const std::runtime_error& e) {
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         }
     }    
     void area(const osmium::Area& area) noexcept {
@@ -171,6 +176,8 @@ public:
         } catch (const osmium::geometry_error& e) {
             BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         } catch (const osmium::invalid_location& e) {
+            BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
+        } catch (const std::runtime_error& e) {
             BOOST_LOG_TRIVIAL(warning) << "Discarded OSM entity: " << e.what() << std::endl;
         }
     }

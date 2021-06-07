@@ -1,6 +1,8 @@
 #include "query_osm_file.hpp"
 #include <osmium/util/progress_bar.hpp>
 
+#include "osmium_utils/filteringMultipolygonManager.hpp"
+
 using index_type = osmium::index::map::FlexMem<osmium::unsigned_object_id_type, osmium::Location>;
 using location_handler_type = osmium::handler::NodeLocationsForWays<index_type>;
 
@@ -8,10 +10,8 @@ namespace bg = boost::geometry;
 namespace ba = boost::adaptors;
 
 void do_query(const osmium::io::File & osm_file, BGRegionsDumpHandler & bg_handler) {
-    const osmium::TagsFilter area_englobing_filter = bg_handler.getAreaEnglobingFilter();
-
     osmium::area::Assembler::config_type assembler_config;
-    osmium::area::MultipolygonManager<osmium::area::Assembler> mp_manager{assembler_config, area_englobing_filter};
+    osmium::area::FilteringMultipolygonManager<osmium::area::Assembler> mp_manager{assembler_config, bg_handler.getAreaEnglobingFilter(), bg_handler.getSearchBox()};
     osmium::relations::read_relations(osm_file, mp_manager);
 
     osmium::io::Reader reader{osm_file};

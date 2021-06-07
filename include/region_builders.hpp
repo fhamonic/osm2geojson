@@ -43,7 +43,7 @@ public:
     }
 
     template <typename Tags, typename Point>
-    Region build(Tags&& tags, Point&& p) const noexcept {
+    Region build(Tags&& tags, Point&& p) const {
         std::vector<std::pair<std::string,std::string>> build_properties = forward_properties(std::forward<Tags>(tags), tags_to_forward);
         boost::copy(properties, std::back_inserter(build_properties));
         return Region(buffer_PointGeo(std::forward<Point>(p), inflateWidth), std::move(build_properties));
@@ -68,7 +68,7 @@ public:
     }
 
     template <typename Tags, typename Linestring>
-    Region build(Tags&& tags, Linestring&& l) const noexcept {
+    Region build(Tags&& tags, Linestring&& l) const {
         std::vector<std::pair<std::string,std::string>> build_properties = forward_properties(std::forward<Tags>(tags), tags_to_forward);
         boost::copy(properties, std::back_inserter(build_properties));
         return Region(buffer_LinestringGeo(std::forward<Linestring>(l), inflateWidth), std::move(build_properties));
@@ -91,7 +91,7 @@ public:
     }
 
     template <typename Tags, typename Multipolygon>
-    Region build(Tags&& tags, Multipolygon&& mp) const noexcept {
+    Region build(Tags&& tags, Multipolygon&& mp) const {
         std::vector<std::pair<std::string,std::string>> build_properties = forward_properties(std::forward<Tags>(tags), tags_to_forward);
         boost::copy(properties, std::back_inserter(build_properties));
         return Region(std::forward<Multipolygon>(mp), std::move(build_properties));

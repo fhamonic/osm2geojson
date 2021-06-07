@@ -198,6 +198,7 @@ int main(int argc, char* argv[]) {
     using ProbabilityMap = boost::property_map<Graph, probability_t>::type;
     using Vertex = Graph::vertex_descriptor;
     using Edge = Graph::edge_descriptor;
+    using EdgeIt = Graph::edge_iterator;
 
     // vertex id
     tsl::robin_map<H3Index, std::pair<size_t,size_t>> indicesMap;
@@ -215,10 +216,10 @@ int main(int argc, char* argv[]) {
         PointGeo center_point = indexToCenter(index);
         for(H3Index neighbor : indexToNeighbors(index)) {
             if(!indicesMap.contains(neighbor)) continue;
-            const Vertex neighbor_vertex = indicesMap[neighbor].first;
+            const auto [neighbor_vertex, neighbor_index] = indicesMap[neighbor];
             const PointGeo neightbor_point = indexToCenter(neighbor);
             const Edge edge = boost::add_edge(center_vertex, neighbor_vertex, g).first;
-            const double neighbor_prob = std::get<2>(hex_datas[indicesMap[neighbor].second]);
+            const double neighbor_prob = std::get<2>(hex_datas[neighbor_index]);
             const double d = bg::distance(center_point, neightbor_point);
             const double prob = std::pow(center_prob, d/2) * std::pow(neighbor_prob, d/2);
             probabilityMap[edge] = prob;
@@ -234,8 +235,23 @@ int main(int argc, char* argv[]) {
         IO::print_hexagons_svg(hex_datas, output_file.replace_extension(".svg"));
 
     if(graphviz) {
-        std::ofstream graphviz_stream(output_file.replace_extension(".dot"));
-        boost::write_graphviz(graphviz_stream, g);
+        std::ofstream dot_file(output_file.replace_extension(".dot"));
+        dot_file << "digraph D {\n"
+            << "  rankdir=LR\n"
+            << "  size=\"4,3\"\n"
+            << "  ratio=\"fill\"\n"
+            << "  edge[style=\"bold\"]\n" << "  node[shape=\"circle\"]\n";
+
+        EdgeIt ei, ei_end;
+        for(std::tie(ei, ei_end) = boost::edges(g); ei != ei_end; ++ei) {
+            const Edge e = *ei;
+            const Vertex u = boost::source(e, g), v = boost::target(e, g);
+            dot_file << u << " -> " << v
+                << "[label=\"" << probabilityMap[e] << "\"";
+            dot_file << ", color=\"black\"";
+            dot_file << "]";
+        }
+        dot_file << "}";
     }
 
     std::cout << "Generate svg in " << chrono.lapTimeMs() << " ms" << std::endl;

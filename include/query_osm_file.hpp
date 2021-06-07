@@ -15,8 +15,8 @@
 #include <osmium/visitor.hpp>
 #include <osmium/index/map/flex_mem.hpp>
 
+#include "osmium_utils/bg_regions_dump_handler.hpp"
 #include "io/parse_patterns.hpp"
-#include "bg_regions_dump_handler.hpp"
 
 MultipolygonGeo query_osm_search_area(const std::filesystem::path & input_file,
         const std::filesystem::path & search_area_pattern_file);

@@ -37,8 +37,8 @@ static bool process_command_line(int argc, char* argv[],
             ("patterns,p", bpo::value<std::filesystem::path>(&patterns_file)->required(), "set regions patterns description json file")
             ("output,o", bpo::value<std::filesystem::path>(&output_file)->required(), "set output geojson file")
             ("search-area-pattern", bpo::value<std::filesystem::path>(&area_pattern_file), "set search area geojson file")
-            ("search-area-file,a", bpo::value<std::filesystem::path>(&area_file), "set search area pattern file")
-            ("generate-svg", "generate the svg file of the result regions")
+            ("search-area,a", bpo::value<std::filesystem::path>(&area_file), "set search area pattern file")
+            ("svg", "generate the svg file of the result regions")
             ("no-warnings", "silence warning prints")
         ;
         bpo::positional_options_description p;
@@ -51,8 +51,8 @@ static bool process_command_line(int argc, char* argv[],
         }
         bpo::notify(vm); 
         provided_area_pattern = (vm.count("search-area-pattern") > 0);
-        provided_area_file = (vm.count("search-area-file") > 0);
-        generate_svg = (vm.count("generate-svg") > 0);
+        provided_area_file = (vm.count("search-area") > 0);
+        generate_svg = (vm.count("svg") > 0);
         no_warnings = (vm.count("no-warnings") > 0);
     } catch(std::exception& e) {
         std::cerr << "Error: " << e.what() << "\n";

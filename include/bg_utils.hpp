@@ -68,7 +68,7 @@ MultipolygonGeo buffer_LinestringGeo(Linestring&& l, float width) {
     if(! boost::geometry::is_valid(mp)) {
         std::string m;
         boost::geometry::is_valid(mp, m);
-        throw std::runtime_error{"Boost Geometry: "+m};
+        throw std::runtime_error{m};
     }
 
     return mp;
