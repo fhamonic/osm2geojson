@@ -6,7 +6,7 @@ expat/2.3.0
 zlib/1.2.11
 simdjson/0.9.2
 h3/3.7.1
-tsl-robin-map/0.6.3
+parallel-hashmap/1.33
 
 [generators]
 cmake

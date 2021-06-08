@@ -19,7 +19,7 @@ namespace bpo = boost::program_options;
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 
-#include <tsl/robin_map.h>
+#include <parallel_hashmap/phmap.h>
 
 #include "region.hpp"
 #include "io/parse_geojson.hpp"
@@ -201,7 +201,7 @@ int main(int argc, char* argv[]) {
     using EdgeIt = Graph::edge_iterator;
 
     // vertex id
-    tsl::robin_map<H3Index, std::pair<size_t,size_t>> indicesMap;
+    phmap::flat_hash_map<H3Index, std::pair<size_t,size_t>> indicesMap;
     Graph g;
     QualityMap qualityMap = boost::get(quality_t(), g);
     ProbabilityMap probabilityMap = boost::get(probability_t(), g);
