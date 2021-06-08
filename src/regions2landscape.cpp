@@ -19,7 +19,8 @@ namespace bpo = boost::program_options;
 #include <boost/graph/adjacency_list.hpp>
 #include <boost/graph/graphviz.hpp>
 
-#include <parallel_hashmap/phmap.h>
+#include <unordered_map>
+// #include <parallel_hashmap/phmap.h>
 
 #include "region.hpp"
 #include "io/parse_geojson.hpp"
@@ -229,6 +230,7 @@ int main(int argc, char* argv[]) {
     
     std::cout << "Generate graph in " << chrono.lapTimeMs() << " ms" << std::endl;
     std::cout << "number of vertices: " << boost::num_vertices(g) << std::endl; 
+    std::cout << "number of edges: " << boost::num_edges(g) << std::endl; 
 
 
     if(generate_svg)
