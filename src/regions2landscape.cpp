@@ -25,7 +25,7 @@ namespace bpo = boost::program_options;
 #include "region.hpp"
 #include "io/parse_geojson.hpp"
 #include "io/print_hexagons_svg.hpp"
-#include "bg_h3_interface.hpp"
+#include "h3_utils/bg_h3_interface.hpp"
 
 #include "chrono.hpp"
 

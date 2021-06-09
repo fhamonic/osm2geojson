@@ -44,7 +44,7 @@ target_compile_options_if_exists(osm2regions PRIVATE ${COMPILE_FOR_NATIVE} -marc
 target_compile_options_if_exists(osm2regions PRIVATE ${COMPILE_WITH_LTO} -flto)
 
 
-add_executable(regions2landscape src/bg_h3_interface.cpp
+add_executable(regions2landscape src/h3_utils/bg_h3_interface.cpp
                         src/io/parse_geojson.cpp
                         src/io/print_hexagons_svg.cpp
                         src/regions2landscape.cpp)
