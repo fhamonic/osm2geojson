@@ -7,7 +7,7 @@
 #include <fstream>
 
 #include "bg_types.hpp"
-#include "bg_h3_interface.hpp"
+#include "h3_utils/bg_h3_interface.hpp"
 
 #include <boost/geometry/io/svg/svg_mapper.hpp>
 
