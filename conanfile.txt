@@ -5,7 +5,6 @@ nlohmann_json/3.9.1
 expat/2.3.0
 zlib/1.2.11
 simdjson/0.9.2
-h3/3.7.1
 parallel-hashmap/1.33
 
 [generators]

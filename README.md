@@ -1,4 +1,4 @@
-# OSM2Landscape
+# OSM2SortedGeoJSON
 
 ## Requirements
 
