@@ -204,8 +204,8 @@ int main(int argc, char* argv[]) {
     using EdgeIt = Graph::edge_iterator;
 
     // vertex id
-    // phmap::flat_hash_map<H3Index, std::pair<size_t,size_t>> indicesMap;
-    H3IndexMap<std::pair<size_t,size_t>> indicesMap;
+    phmap::flat_hash_map<H3Index, std::pair<Vertex,size_t>> indicesMap;
+    // H3IndexMap<std::pair<Vertex,size_t>> indicesMap;
     Graph g;
     QualityMap qualityMap = boost::get(quality_t(), g);
     ProbabilityMap probabilityMap = boost::get(probability_t(), g);
@@ -235,7 +235,9 @@ int main(int argc, char* argv[]) {
     std::cout << "number of vertices: " << boost::num_vertices(g) << std::endl; 
     std::cout << "number of edges: " << boost::num_edges(g) << std::endl; 
 
-    std::cout << "number of entries in map:" << indicesMap.count_leafs() << std::endl;
+    // std::cout << "number of entries in map:" << indicesMap.count_leafs() << std::endl;
+    // std::cout << "maximum depth in map:" << indicesMap.max_depth() << std::endl;
+    std::cout << "maximum depth in map:" << indicesMap.capacity() << std::endl;
 
 
     if(generate_svg)

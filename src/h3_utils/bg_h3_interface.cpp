@@ -73,6 +73,8 @@ RingGeo indexToRing(H3Index index) noexcept {
     return create_ring_from_boundary(boundary);
 }
 
+#include <iostream>
+
 std::vector<H3Index> polyfill(const PolygonGeo & hull, int res) noexcept {
     GeoPolygon geo_hull = create_geopolygon(hull);
     const int max_size = maxPolyfillSize(&geo_hull, res);

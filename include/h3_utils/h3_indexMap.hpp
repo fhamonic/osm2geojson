@@ -1,6 +1,9 @@
 #ifndef BG_H3_INDEXMAP_HPP
 #define BG_H3_INDEXMAP_HPP
 
+// A debug mais parallel-hashmap tellement performant que pas necessaire
+
+#include <iostream>
 #include <memory>
 
 #include <h3/h3api.h>
@@ -11,7 +14,7 @@ struct H3Cell {
 
     static constexpr int resolution_bit_offset = 52;
     static constexpr H3Index resolution_bit_mask = static_cast<H3Index>(0b1111) << resolution_bit_offset;
-    static constexpr int local_index_bit_offset = 3*(15-N);
+    static constexpr int local_index_bit_offset = 45-3*N;
     static constexpr H3Index local_index_bit_mask = static_cast<H3Index>(0b111) << local_index_bit_offset;
 
     std::array<std::unique_ptr<ChildCell>, 7> childs;
@@ -34,12 +37,21 @@ struct H3Cell {
     }
 
     size_t count_leafs() {
+        if(N == 11) return 1;
         size_t sum = 0;
         for(const auto & child : childs) {
             if(child == nullptr) continue;
             sum += child->count_leafs();
         }
-        return (sum == 0) ? 1 : sum;
+        return sum;
+    }
+    size_t max_depth() {
+        size_t max = 0;
+        for(const auto & child : childs) {
+            if(child == nullptr) continue;
+            max = std::max(max, child->max_depth());
+        }
+        return (max == 0) ? N : max;
     }
 };
 template <typename T>
@@ -48,6 +60,7 @@ struct H3Cell<T, 15> {
     T & operator[](const H3Index) { return value; }
     bool contains(const H3Index) const { return true; }
     size_t count_leafs() { return 1; }
+    size_t max_depth() { return 15; }
 };
 
 
@@ -83,6 +96,14 @@ public:
             sum += child->count_leafs();
         }
         return sum;
+    }
+    size_t max_depth() {
+        size_t max = 0;
+        for(const auto & child : first_childs) {
+            if(child == nullptr) continue;
+            max = std::max(max, child->max_depth());
+        }
+        return max;
     }
 };
 
