@@ -42,9 +42,9 @@ MultipolygonGeo query_osm_search_area(const std::filesystem::path & input_file,
     search_area_pattern_stream >> search_area_pattern;
 
     BGRegionsDumpHandler bg_search_area_handler(
-        std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,NodeRegionBuilder>>(),
-        std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,WayRegionBuilder>>(),
-        std::vector<std::pair<std::vector<std::pair<std::string,std::string>>,AreaRegionBuilder>>(1, IO::parse_area_pattern(search_area_pattern))
+        std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>,NodeRegionBuilder>>(),
+        std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>,WayRegionBuilder>>(),
+        std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>,AreaRegionBuilder>>(1, IO::parse_area_pattern(search_area_pattern))
     );
     do_query(osm_file, bg_search_area_handler);
 

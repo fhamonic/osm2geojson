@@ -7,6 +7,7 @@
 
 #include <osmium/handler.hpp>
 #include <osmium/tags/tags_filter.hpp>
+#include <osmium/util/string_matcher.hpp>
 
 #include "osmium_utils/bg_factory.hpp"
 
@@ -26,7 +27,7 @@ private:
     BoxGeo search_area_box;
 
     template <typename Tags>
-    bool fusion_test(Tags&& tags, const std::vector<std::pair<std::string, std::string>> & filter) {
+    bool fusion_test(Tags&& tags, const std::vector<std::pair<std::string,osmium::StringMatcher>> & filter) {
         auto tags_first = tags.cbegin(); 
         auto tags_last = tags.cend(); 
         auto filter_first = filter.cbegin(); 
@@ -36,16 +37,16 @@ private:
             if(r_cmp < 0) { ++tags_first; continue; }
             if(r_cmp > 0) 
                 return false;
-            if(filter_first->second.compare(tags_first->second) != 0)
+            if(!filter_first->second(tags_first->second.data()))
                 return false;
             ++tags_first; ++filter_first;
         }
         return filter_first == filter_last;
     }
 
-    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>, NodeRegionBuilder>> node_filters;
-    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>, WayRegionBuilder>> way_filters;
-    std::vector<std::pair<std::vector<std::pair<std::string,std::string>>, AreaRegionBuilder>> area_filters;
+    std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, NodeRegionBuilder>> node_filters;
+    std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, WayRegionBuilder>> way_filters;
+    std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, AreaRegionBuilder>> area_filters;
 
     std::vector<Region> regions;
 

@@ -15,7 +15,7 @@
 #include <boost/range/adaptors.hpp>
 
 namespace IO {
-    void print_regions_svg(const std::vector<Region> & regions, const std::filesystem::path & svg_file);
+    void print_svg_regions(const std::vector<Region> & regions, const std::filesystem::path & svg_file);
 }
 
 #endif // PRINT_REGIONS_SVG_HPP

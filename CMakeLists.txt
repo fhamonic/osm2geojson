@@ -26,9 +26,9 @@ find_package(Protozero REQUIRED)
 
 
 add_executable(osm2sorted_geojson src/io/parse_patterns.cpp
-                        src/io/print_geojson.cpp
                         src/io/parse_geojson.cpp
-                        src/io/print_regions_svg.cpp
+                        src/io/print_geojson.cpp
+                        src/io/print_svg_regions.cpp
                         src/query_osm_file.cpp
                         src/osm2sorted_geojson.cpp)
 target_include_directories(osm2sorted_geojson PRIVATE include)
@@ -37,6 +37,7 @@ target_link_libraries(osm2sorted_geojson CONAN_PKG::simdjson)
 target_link_libraries(osm2sorted_geojson CONAN_PKG::nlohmann_json)
 target_link_libraries(osm2sorted_geojson CONAN_PKG::expat)
 target_link_libraries(osm2sorted_geojson CONAN_PKG::zlib)
+target_link_libraries(osm2sorted_geojson CONAN_PKG::fmt)
 target_include_directories(osm2sorted_geojson PUBLIC ${OSMIUM_INCLUDE_DIR})
 target_include_directories(osm2sorted_geojson PUBLIC ${PROTOZERO_INCLUDE_DIR})
 target_compile_options_if_exists(osm2sorted_geojson PRIVATE ${WARNINGS} -Wall)
