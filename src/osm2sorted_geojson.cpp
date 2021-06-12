@@ -61,6 +61,8 @@ static bool process_command_line(int argc, char* argv[],
     return true;
 }
 
+#include "chrono.hpp"
+
 int main(int argc, char* argv[]) {
     std::filesystem::path input_file;
     std::filesystem::path patterns_file;
@@ -87,7 +89,12 @@ int main(int argc, char* argv[]) {
 
     std::vector<Region> regions = query_osm_regions(input_file, patterns_file, search_area);
 
+    Chrono chrono;
+
     IO::print_geojson(regions, output_file);
+
+    std::cout << "Printed geojson buildings in " << chrono.lapTimeMs() << " ms" << std::endl;
+
     if(generate_svg)
         IO::print_svg_regions(regions, output_file.replace_extension(".svg"));
 }
