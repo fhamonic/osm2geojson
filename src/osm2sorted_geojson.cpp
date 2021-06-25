@@ -95,6 +95,8 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Printed geojson in " << chrono.lapTimeMs() << " ms" << std::endl;
 
-    if(generate_svg)
+    if(generate_svg) {
         IO::print_svg_regions(regions, output_file.replace_extension(".svg"));
+        std::cout << "Printed svg in " << chrono.lapTimeMs() << " ms" << std::endl;
+    }
 }

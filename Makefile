@@ -7,7 +7,9 @@ BUILD_DIR = build
 .PHONY: all clean
 
 all: $(BUILD_DIR)
-	@cd $(BUILD_DIR) && \
+	@export CC=/usr/bin/gcc-10 && \
+	export CXX=/usr/bin/g++-10 && \
+	cd $(BUILD_DIR) && \
 	cmake --build . --parallel $(CPUS)
 
 $(BUILD_DIR):
