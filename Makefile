@@ -7,16 +7,14 @@ BUILD_DIR = build
 .PHONY: all clean
 
 all: $(BUILD_DIR)
-	@export CC=/usr/bin/gcc-10 && \
-	export CXX=/usr/bin/g++-10 && \
-	cd $(BUILD_DIR) && \
+	@cd $(BUILD_DIR) && \
 	cmake --build . --parallel $(CPUS)
 
 $(BUILD_DIR):
 	@mkdir $(BUILD_DIR) && \
 	cd $(BUILD_DIR) && \
 	conan install .. && \
-	cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWARNINGS=ON -DCOMPILE_FOR_NATIVE=ON -DCOMPILE_WITH_LTO=ON ..
+	cmake -D CMAKE_CXX_COMPILER=g++-10 -DCMAKE_BUILD_TYPE=RelWithDebInfo -DWARNINGS=ON -DCOMPILE_FOR_NATIVE=ON -DCOMPILE_WITH_LTO=ON ..
 
 
 clean:
