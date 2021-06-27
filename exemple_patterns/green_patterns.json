@@ -1,0 +1,55 @@
+{
+    "nodePatterns" : [
+        {
+            "matchPropertiesValues" : { "natural" : "tree" },
+            "inflatedWidth" : 2,
+            "exportProperties" : { "qualityCoef" : 1 }
+        }
+    ],
+    "wayPatterns" : [
+         {
+            "matchPropertiesValues" : { "natural" : "tree_row" },
+            "inflatedWidth" : 2,
+            "exportProperties" : { "qualityCoef" : 1 }
+        }
+    ],
+    "areaPatterns" : [
+        {
+            "matchPropertiesValues" : { "leisure" : "dog_park" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "leisure" : "garden" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "leisure" : "park" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "landuse" : "allotments" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "landuse" : "forest" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "landuse" : "grass" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "landuse" : "trees" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "natural" : "grassland" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "natural" : "heath" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "natural" : "meadow" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "natural" : "scrub" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        },{
+            "matchPropertiesValues" : { "natural" : "wood" },
+            "exportProperties" : { "qualityCoef" : 1 }
+        }
+    ]
+}
