@@ -1,5 +1,5 @@
-#ifndef REGION_HPP
-#define REGION_HPP
+#ifndef AREA_HPP
+#define AREA_HPP
 
 #include <list>
 #include <utility>
@@ -7,13 +7,13 @@
 
 #include "bg_types.hpp"
 
-class Region {
+class Area {
 public:
     const MultipolygonGeo multipolygon;
     const std::vector<std::pair<std::string,std::string>> properties;
 
     template <typename Multipolygon, typename Properties>
-    Region(Multipolygon&& multipolygon, Properties&& properties)
+    Area(Multipolygon&& multipolygon, Properties&& properties)
         : multipolygon(std::forward<Multipolygon>(multipolygon))
         , properties(std::forward<Properties>(properties)) {}
 
@@ -25,4 +25,4 @@ public:
     }
 };
 
-#endif // REGION_HPP
+#endif // AREA_HPP

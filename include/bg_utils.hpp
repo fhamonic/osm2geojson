@@ -65,11 +65,11 @@ MultipolygonGeo buffer_LinestringGeo(Linestring&& l, float width) {
 
     proj.inverse(mp2d_simplified, mp);
 
-    if(! boost::geometry::is_valid(mp)) {
-        std::string m;
-        boost::geometry::is_valid(mp, m);
-        throw std::runtime_error{m};
-    }
+    // if(! boost::geometry::is_valid(mp)) {
+    //     std::string m;
+    //     boost::geometry::is_valid(mp, m);
+    //     throw std::runtime_error{m};
+    // }
 
     return mp;
 }
