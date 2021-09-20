@@ -1,0 +1,9 @@
+{
+    "nodePatterns" : [],
+    "wayPatterns" : [],
+    "areaPatterns" : [
+        {
+            "requireProperties" : [ "building" ]
+        }
+    ]
+}

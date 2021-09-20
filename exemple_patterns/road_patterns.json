@@ -1,0 +1,43 @@
+{
+    "nodePatterns" : [],
+    "wayPatterns" : [
+         {
+            "matchPropertiesValues" : { "highway" : "motorway" },
+            "inflatedWidth" : 24,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.95, "overrideLevel" : 1 }
+         },{
+            "matchPropertiesValues" : { "highway" : "trunk" },
+            "inflatedWidth" : 24, "overrideLevel" : 1,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.95 }
+         },{
+            "matchPropertiesValues" : { "highway" : "primary" },
+            "inflatedWidth" : 16,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.97, "overrideLevel" : 1 }
+         },{
+            "matchPropertiesValues" : { "highway" : "secondary" },
+            "inflatedWidth" : 8,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.97, "overrideLevel" : 1 }
+         },{
+            "matchPropertiesValues" : { "highway" : "tertiary" },
+            "inflatedWidth" : 8,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.985, "overrideLevel" : 1 }
+         },{
+            "matchPropertiesValues" : { "highway" : "residential" },
+            "inflatedWidth" : 7,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.99, "overrideLevel" : 1 }
+         },{
+            "matchPropertiesValues" : { "highway" : "service" },
+            "inflatedWidth" : 7,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.997, "overrideLevel" : 1 }
+        },{
+            "matchPropertiesValues" : { "highway" : "living_street" },
+            "inflatedWidth" : 7,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.997, "overrideLevel" : 1 }
+        },{
+            "matchPropertiesValues" : { "highway" : "unclassified" },
+            "inflatedWidth" : 7,
+            "exportProperties" : { "qualityCoef" : 0, "probConnectionPerMeter" : 0.997, "overrideLevel" : 1 }
+        }
+    ],
+    "areaPatterns" : []
+}
