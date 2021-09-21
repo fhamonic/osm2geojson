@@ -9,17 +9,35 @@
 #include <osmium/tags/tags_filter.hpp>
 #include <osmium/util/string_matcher.hpp>
 
-#include "region_builders.hpp"
+#include "builders.hpp"
 
 namespace IO {
-    osmium::TagsFilter rules_to_tagsfilter(const std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>,AreaRegionBuilder>> & rules);
-    std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, NodeRegionBuilder> parse_node_pattern(const nlohmann::json & pattern);
-    std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, WayRegionBuilder> parse_way_pattern(const nlohmann::json & pattern);
-    std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, AreaRegionBuilder> parse_area_pattern(const nlohmann::json & pattern);
+osmium::TagsFilter rules_to_tagsfilter(
+    const std::vector<
+        std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+                  AreaRegionBuilder>> & rules);
+std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+          NodeRegionBuilder>
+parse_node_pattern(const nlohmann::json & pattern);
+std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+          WayRegionBuilder>
+parse_way_pattern(const nlohmann::json & pattern);
+std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+          AreaRegionBuilder>
+parse_area_pattern(const nlohmann::json & pattern);
 
-    std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>,NodeRegionBuilder>> parse_node_patterns(const nlohmann::json & patterns);
-    std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>,WayRegionBuilder>> parse_way_patterns(const nlohmann::json & patterns);
-    std::vector<std::pair<std::vector<std::pair<std::string,osmium::StringMatcher>>, AreaRegionBuilder>> parse_area_patterns(const nlohmann::json & patterns);
-}
+std::vector<
+    std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+              NodeRegionBuilder>>
+parse_node_patterns(const nlohmann::json & patterns);
+std::vector<
+    std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+              WayRegionBuilder>>
+parse_way_patterns(const nlohmann::json & patterns);
+std::vector<
+    std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
+              AreaRegionBuilder>>
+parse_area_patterns(const nlohmann::json & patterns);
+}  // namespace IO
 
-#endif // PARSE_PATTERNS_HPP
+#endif  // PARSE_PATTERNS_HPP

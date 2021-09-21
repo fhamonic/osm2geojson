@@ -5,17 +5,70 @@ namespace bg = boost::geometry;
 namespace ba = boost::adaptors;
 
 namespace IO {
-    void print_geojson(const std::vector<Region> & regions, const std::filesystem::path & json_file) {
-        std::ofstream json(json_file);
-        json << std::setprecision(std::numeric_limits<double>::max_digits10);
-
-        json << "{\"type\":\"FeatureCollection\",\"features\":[";
-        for(const auto & e : regions | ba::indexed(0)) {
-            json << "{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\",\"coordinates\":" 
-                << bg::dsv(e.value().multipolygon, ",", "[", "]", ",", "[", "]", ",")
-                << "},\"properties\":{" << boost::algorithm::join(e.value().properties | ba::transformed([](const auto & p){ return "\""+p.first+"\":\""+p.second+"\""; }), ",")
-                << "}}" << (e.index()+1 != static_cast<std::ptrdiff_t>(regions.size()) ? "," : "");
-        }
-        json << "]}";
+void print_nodes(std::ofstream & os, const std::vector<Node> & nodes) {
+    for(const auto & e : nodes | ba::indexed(0)) {
+        os << "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Point\","
+              "\"coordinates\":"
+           << bg::dsv(e.value().point, ",", "[", "]", ",", "[", "]", ",")
+           << "},\"properties\":{"
+           << boost::algorithm::join(
+                  e.value().properties | ba::transformed([](const auto & p) {
+                      return "\"" + p.first + "\":\"" + p.second + "\"";
+                  }),
+                  ",")
+           << "}}"
+           << (e.index() + 1 != static_cast<std::ptrdiff_t>(nodes.size()) ? ","
+                                                                          : "");
     }
 }
+
+void print_ways(std::ofstream & os, const std::vector<Way> & ways) {
+    for(const auto & e : ways | ba::indexed(0)) {
+        os << "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Linestring\","
+              "\"coordinates\":"
+           << bg::dsv(e.value().linestring, ",", "[", "]", ",", "[", "]", ",")
+           << "},\"properties\":{"
+           << boost::algorithm::join(
+                  e.value().properties | ba::transformed([](const auto & p) {
+                      return "\"" + p.first + "\":\"" + p.second + "\"";
+                  }),
+                  ",")
+           << "}}"
+           << (e.index() + 1 != static_cast<std::ptrdiff_t>(ways.size()) ? ","
+                                                                         : "");
+    }
+}
+
+void print_areas(std::ofstream & os, const std::vector<Area> & areas) {
+    for(const auto & e : areas | ba::indexed(0)) {
+        os << "{\"type\":\"Feature\",\"geometry\":{\"type\":\"MultiPolygon\","
+              "\"coordinates\":"
+           << bg::dsv(e.value().multipolygon, ",", "[", "]", ",", "[", "]", ",")
+           << "},\"properties\":{"
+           << boost::algorithm::join(
+                  e.value().properties | ba::transformed([](const auto & p) {
+                      return "\"" + p.first + "\":\"" + p.second + "\"";
+                  }),
+                  ",")
+           << "}}"
+           << (e.index() + 1 != static_cast<std::ptrdiff_t>(areas.size()) ? ","
+                                                                          : "");
+    }
+}
+
+void print_geojson(const std::vector<Node> & nodes,
+                   const std::vector<Way> & ways,
+                   const std::vector<Area> & areas,
+                   const std::filesystem::path & json_file) {
+    std::ofstream json(json_file);
+    json << std::setprecision(std::numeric_limits<double>::max_digits10);
+
+    json << "{\"type\":\"FeatureCollection\",\"features\":[";
+    print_nodes(json, nodes);
+    if(ways.size() > 0 || areas.size() > 0) json << ",";
+    print_ways(json, ways);
+    if(areas.size() > 0) json << ",";
+    print_areas(json, areas);
+    json << "]}";
+}
+}  // namespace IO
