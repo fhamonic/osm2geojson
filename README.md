@@ -1,4 +1,4 @@
-# OSM2SortedGeoJSON
+# OSM2GeoJSON
 
 Program to handle openstreetmap datas and retrieve informations about ecological landscapes.
 
