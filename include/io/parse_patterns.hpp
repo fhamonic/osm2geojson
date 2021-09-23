@@ -15,28 +15,28 @@ namespace IO {
 osmium::TagsFilter rules_to_tagsfilter(
     const std::vector<
         std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-                  AreaRegionBuilder>> & rules);
+                  AreaBuilder>> & rules);
 std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-          NodeRegionBuilder>
+          NodeBuilder>
 parse_node_pattern(const nlohmann::json & pattern);
 std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-          WayRegionBuilder>
+          WayBuilder>
 parse_way_pattern(const nlohmann::json & pattern);
 std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-          AreaRegionBuilder>
+          AreaBuilder>
 parse_area_pattern(const nlohmann::json & pattern);
 
 std::vector<
     std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-              NodeRegionBuilder>>
+              NodeBuilder>>
 parse_node_patterns(const nlohmann::json & patterns);
 std::vector<
     std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-              WayRegionBuilder>>
+              WayBuilder>>
 parse_way_patterns(const nlohmann::json & patterns);
 std::vector<
     std::pair<std::vector<std::pair<std::string, osmium::StringMatcher>>,
-              AreaRegionBuilder>>
+              AreaBuilder>>
 parse_area_patterns(const nlohmann::json & patterns);
 }  // namespace IO
 

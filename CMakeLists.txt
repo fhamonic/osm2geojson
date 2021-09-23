@@ -27,9 +27,8 @@ find_package(Protozero REQUIRED)
 
 
 add_executable(osm2sorted_geojson src/io/parse_patterns.cpp
-                        src/io/parse_geojson.cpp
                         src/io/print_geojson.cpp
-                        src/io/print_svg_regions.cpp
+                        src/io/print_svg_result.cpp
                         src/query_osm_file.cpp
                         src/osm2sorted_geojson.cpp)
 target_include_directories(osm2sorted_geojson PRIVATE include)

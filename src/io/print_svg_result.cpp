@@ -12,7 +12,7 @@ void print_svg_result(const std::vector<Node> & nodes,
     std::ofstream svg(svg_file);
     bg::svg_mapper<PointGeo> mapper(svg, 1500, 1500);
 
-    if(!std::all_of(raw_regions.cbegin(), raw_regions.cend(),
+    if(!std::all_of(areas.cbegin(), areas.cend(),
                     [](const auto & p) {
                         return p.hasProperty("qualityCoef") &&
                                p.hasProperty("probConnectionPerMeter");
@@ -22,11 +22,11 @@ void print_svg_result(const std::vector<Node> & nodes,
             "exported properties for every regions");
 
     std::vector<std::pair<MultipolygonGeo, std::pair<double, double>>> regions(
-        raw_regions.size());
+        areas.size());
     try {
         std::transform(
-            raw_regions.cbegin(), raw_regions.cend(), regions.begin(),
-            [](const Region & r) {
+            areas.cbegin(), areas.cend(), regions.begin(),
+            [](const Area & r) {
                 return std::make_pair(
                     r.multipolygon,
                     std::make_pair(
