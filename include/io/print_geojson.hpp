@@ -13,6 +13,7 @@
 
 #include <boost/range/adaptors.hpp>
 #include <boost/range/algorithm.hpp>
+#include <boost/algorithm/string.hpp>
 
 namespace IO {
 void print_geojson(const std::vector<Node> & nodes,

@@ -24,7 +24,7 @@ void print_nodes(std::ofstream & os, const std::vector<Node> & nodes) {
 
 void print_ways(std::ofstream & os, const std::vector<Way> & ways) {
     for(const auto & e : ways | ba::indexed(0)) {
-        os << "{\"type\":\"Feature\",\"geometry\":{\"type\":\"Linestring\","
+        os << "{\"type\":\"Feature\",\"geometry\":{\"type\":\"LineString\","
               "\"coordinates\":"
            << bg::dsv(e.value().linestring, ",", "[", "]", ",", "[", "]", ",")
            << "},\"properties\":{"
@@ -65,9 +65,9 @@ void print_geojson(const std::vector<Node> & nodes,
 
     json << "{\"type\":\"FeatureCollection\",\"features\":[";
     print_nodes(json, nodes);
-    if(ways.size() > 0 || areas.size() > 0) json << ",";
+    if(nodes.size() > 0) json << ",";
     print_ways(json, ways);
-    if(areas.size() > 0) json << ",";
+    if(nodes.size() + ways.size() > 0) json << ",";
     print_areas(json, areas);
     json << "]}";
 }

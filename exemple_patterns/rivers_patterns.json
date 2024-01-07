@@ -1,0 +1,45 @@
+{
+    "nodePatterns": [],
+    "wayPatterns": [
+        {
+            "matchPropertiesValues": {
+                "waterway": "stream"
+            },
+            "inflatedWidth": 3,
+            "forwardProperties": [
+                "name"
+            ],
+            "exportProperties": {
+                "qualityCoef": 1,
+                "probConnectionPerMeter": 1
+            }
+        },
+        {
+            "matchPropertiesValues": {
+                "waterway": "river"
+            },
+            "inflatedWidth": 6,
+            "forwardProperties": [
+                "name"
+            ],
+            "exportProperties": {
+                "qualityCoef": 1,
+                "probConnectionPerMeter": 1
+            }
+        },
+        {
+            "matchPropertiesValues": {
+                "waterway": "dam"
+            },
+            "inflatedWidth": 3,
+            "forwardProperties": [
+                "name"
+            ],
+            "exportProperties": {
+                "qualityCoef": 0,
+                "probConnectionPerMeter": 0
+            }
+        }
+    ],
+    "areaPatterns": []
+}

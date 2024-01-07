@@ -89,7 +89,7 @@ int main(int argc, char * argv[]) {
     MultipolygonGeo search_area;
     if(provided_area_file) {
         simdjson::ondemand::parser parser;
-        auto json = simdjson::padded_string::load(area_file);
+        auto json = simdjson::padded_string::load(area_file.string());
         auto doc = parser.iterate(json);
 
         if(doc.find_field("type") != "FeatureCollection")

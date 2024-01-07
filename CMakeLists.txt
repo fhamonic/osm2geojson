@@ -9,26 +9,30 @@ set(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR})
 
 #################### Options ####################
 SET(CMAKE_CXX_STANDARD 17)
-SET(CMAKE_CXX_STANDARD_REQUIRED ON)
-SET(CONAN_DISABLE_CHECK_COMPILER ON)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(WARNINGS "" OFF)
-option(COMPILE_FOR_NATIVE "" OFF)
-option(COMPILE_WITH_LTO "" OFF)
-
-set(WARNINGS_LIST "-Wall;-Wextra;")
+option(WARNINGS "Enable warnings" OFF)
+option(OPTIMIZE_FOR_NATIVE "Build with -march=native" OFF)
 
 # ################### Modules ####################
 set(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake" ${CMAKE_MODULE_PATH})
-include(CMakeBuildTypeUtils)
+include(GNUInstallDirs)
+include(CompilerWarnings)
+include(CompilerOptimizations)
 
 #################### Packages ####################
-include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup(TARGETS)
+find_package(nlohmann_json REQUIRED)
+find_package(simdjson REQUIRED)
+# find_package(nlohmann_json_schema_validator REQUIRED)
+# find_package(phmap REQUIRED)
+find_package(Boost REQUIRED)
+find_package(TBB REQUIRED)
 
-find_package(Osmium REQUIRED)
-find_package(Protozero REQUIRED)
-
+set(Osmium_DEBUG 1)
+# set(Osmium_FIND_COMPONENTS 1)
+# find_package(Osmium REQUIRED)
+find_package(Osmium REQUIRED COMPONENTS xml pbf io)
+find_package(expat REQUIRED)
 
 add_executable(osm2geojson src/io/parse_patterns.cpp
                         src/io/print_geojson.cpp
@@ -36,13 +40,14 @@ add_executable(osm2geojson src/io/parse_patterns.cpp
                         src/query_osm_file.cpp
                         src/osm2geojson.cpp)
 target_include_directories(osm2geojson PRIVATE include)
-target_link_libraries(osm2geojson CONAN_PKG::boost)
-target_link_libraries(osm2geojson CONAN_PKG::simdjson)
-target_link_libraries(osm2geojson CONAN_PKG::nlohmann_json)
-target_link_libraries(osm2geojson CONAN_PKG::expat)
-target_link_libraries(osm2geojson CONAN_PKG::zlib)
+target_link_libraries(osm2geojson nlohmann_json::nlohmann_json)
+target_link_libraries(osm2geojson simdjson::simdjson)
+target_link_libraries(osm2geojson Boost::boost)
+target_link_libraries(osm2geojson Boost::program_options Boost::log Boost::log_setup)
+target_link_libraries(osm2geojson TBB::tbb)
 target_include_directories(osm2geojson PUBLIC ${OSMIUM_INCLUDE_DIR})
-target_include_directories(osm2geojson PUBLIC ${PROTOZERO_INCLUDE_DIR})
-target_compile_options_if_exists(osm2geojson PRIVATE ${WARNINGS} ${WARNINGS_LIST})
-target_compile_options_if_exists(osm2geojson PRIVATE ${COMPILE_FOR_NATIVE} -march=native)
-target_compile_options_if_exists(osm2geojson PRIVATE ${COMPILE_WITH_LTO} -flto)
+target_link_libraries(osm2geojson ${OSMIUM_LIBRARIES})
+target_link_libraries(osm2geojson expat::expat)
+
+set_project_warnings(osm2geojson)
+set_project_optimizations(osm2geojson)
